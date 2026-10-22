@@ -1,0 +1,5 @@
+# One channel per line. Use the @handle or the channel link.
+# Add as many as you want. Lines starting with # are ignored.
+# Examples (delete the # to activate):
+# @veritasium
+# https://www.youtube.com/@3blue1brown
