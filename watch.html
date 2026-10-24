@@ -33,6 +33,13 @@ h1{margin:12px 0 4px;font-size:20px;line-height:28px;font-weight:700}
 .chip.on{background:#3b3b3b;box-shadow:inset 0 0 0 1px var(--blue)}
 .chip button{font:400 13px Roboto,Arial,sans-serif;color:var(--text);background:none;border:0;padding:6px 10px;cursor:pointer}
 .chip .x{color:var(--muted);padding:6px 10px 6px 2px}
+.ctrl .rec-on{background:#b3001f}
+.recwrap{border-top:1px solid var(--line);max-height:45%;overflow:auto}
+.recwrap summary{padding:10px 14px;cursor:pointer;font-weight:500}
+.rec{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 14px 10px}
+.rec .lbl{flex:1 1 100%;color:var(--muted);font-size:13px}
+.rec button{font:500 13px Roboto,Arial,sans-serif;color:var(--text);background:#2a2a2a;border:0;border-radius:16px;padding:6px 12px;cursor:pointer}
+.rec button:hover{background:#3a3a3a}
 .hint{color:var(--muted);font-size:13px;padding-top:12px}
 .notes{position:sticky;top:64px;height:calc(100vh - 80px);min-height:320px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
@@ -64,6 +71,7 @@ textarea{flex:1;width:100%;resize:none;border:0;background:transparent;color:var
         <button id="bPrev" type="button">◀ Prev</button>
         <button id="bReplay" type="button">↻ Replay</button>
         <button id="bNext" type="button">Next ▶</button>
+        <button id="bRec" type="button">🎙 Record</button>
         <button id="bMark" class="mark" type="button">＋ Mark</button>
       </div>
       <div class="chips" id="chips"></div>
@@ -76,9 +84,10 @@ textarea{flex:1;width:100%;resize:none;border:0;background:transparent;color:var
       <h2>Notes</h2>
       <button id="stamp" type="button">⏱ Timestamp</button>
       <button id="copy" type="button">Copy</button>
-      <button id="dl" type="button">Download</button>
+      <button id="dl" type="button">Export</button>
     </div>
     <textarea id="pad" placeholder="Write your notes here…" spellcheck="true"></textarea>
+    <details class="recwrap" id="recwrap"><summary>Recordings (<span id="recN">0</span>)</summary><div id="recs"></div></details>
     <div class="status" id="status">Notes are saved on this device.</div>
   </aside>
 </div>
@@ -121,7 +130,7 @@ if (id) {
       width: '100%', height: '100%',
       playerVars: { autoplay: 1, rel: 0, playsinline: 1 },
       events: { onStateChange: e => {
-        if (e.data === 0 || (e.data === 2 && Date.now() - startedAt > 600)) clearInterval(iv);
+        if (e.data === 0 || (e.data === 2 && Date.now() - startedAt > 600)) { clearInterval(iv); afterEnd = null; }
       } }
     });
   };
@@ -158,15 +167,16 @@ function addMark() {
   marks.push(t); marks.sort((a, b) => a - b); cur = marks.indexOf(t);
   touch(); renderMarks();
 }
-function playPhrase(i) {
+let afterEnd = null;
+function playPhrase(i, then) {
   if (!ready()) return;
-  clearInterval(iv);
+  clearInterval(iv); afterEnd = then || null;
   if (!marks.length) { player.seekTo(Math.max(0, player.getCurrentTime() - 5), true); player.playVideo(); return; }
   cur = Math.max(0, Math.min(marks.length - 1, i));
   const s = cur ? marks[cur - 1] : 0, e = marks[cur];
   player.seekTo(s, true); player.playVideo(); startedAt = Date.now();
   iv = setInterval(() => {
-    if (Date.now() - startedAt > 400 && player.getCurrentTime() >= e - 0.05) { player.pauseVideo(); clearInterval(iv); }
+    if (Date.now() - startedAt > 400 && player.getCurrentTime() >= e - 0.05) { player.pauseVideo(); clearInterval(iv); const f = afterEnd; afterEnd = null; if (f) f(); }
   }, 80);
   renderMarks();
 }
@@ -185,6 +195,7 @@ document.addEventListener('keydown', e => {
   if (k === 'ArrowLeft') playPhrase(e.shiftKey ? cur - 1 : cur);
   else if (k === 'ArrowRight') playPhrase(cur + 1);
   else if (k === 'm' || k === 'M') addMark();
+  else if (k === 'r' || k === 'R') toggleRec();
   else if (k === ' ') togglePlay();
   else return;
   e.preventDefault();
@@ -206,14 +217,137 @@ document.getElementById('copy').onclick = async () => {
   try { await navigator.clipboard.writeText(pad.value); status.textContent = 'Copied'; }
   catch (e) { pad.select(); status.textContent = 'Press copy on your keyboard'; }
 };
-document.getElementById('dl').onclick = () => {
-  const blob = new Blob([titleText + '\n\n' + pad.value + (marks.length ? '\n\nMarks (phrase ends):\n' + marks.map((m, i) => (i + 1) + '. ' + fmt(Math.floor(m))).join('\n') : '')], { type: 'text/plain' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = (titleText.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'notes') + '.txt';
-  a.click();
-  URL.revokeObjectURL(a.href);
+const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+
+// Auto timestamp on every new line
+function nowTag() { return ready() ? '[' + fmt(Math.floor(player.getCurrentTime())) + '] ' : ''; }
+function insertAtCursor(txt) {
+  const a = pad.selectionStart, b = pad.selectionEnd;
+  pad.value = pad.value.slice(0, a) + txt + pad.value.slice(b);
+  pad.setSelectionRange(a + txt.length, a + txt.length);
+  save();
+}
+pad.addEventListener('beforeinput', e => {
+  if (e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak') { e.preventDefault(); insertAtCursor('\n' + nowTag()); }
+});
+pad.addEventListener('focus', () => { if (!pad.value) insertAtCursor(nowTag()); });
+
+// Recordings storage (IndexedDB)
+const dbp = new Promise((res, rej) => {
+  try {
+    const r = indexedDB.open('focustube', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('recs', { keyPath: 'id', autoIncrement: true }).createIndex('vid', 'vid'); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  } catch (e) { rej(e); }
+});
+async function tx(mode, fn) {
+  const d = await dbp;
+  return new Promise((res, rej) => {
+    const t = d.transaction('recs', mode); const q = fn(t.objectStore('recs'));
+    t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error);
+  });
+}
+let recs = [], curAudio = null;
+function phraseOf(at) { const i = marks.findIndex(m => m >= at - 0.3); return i < 0 ? marks.length : i; }
+async function loadRecs() {
+  try { recs = (await tx('readonly', s => s.index('vid').getAll(id))) || []; } catch (e) { recs = []; }
+  renderRecs();
+}
+function playRec(r) {
+  if (curAudio) curAudio.pause();
+  if (ready()) player.pauseVideo();
+  const u = URL.createObjectURL(r.blob);
+  curAudio = new Audio(u);
+  curAudio.onended = () => URL.revokeObjectURL(u);
+  curAudio.play();
+}
+function renderRecs() {
+  const box = document.getElementById('recs'); box.replaceChildren();
+  document.getElementById('recN').textContent = recs.length;
+  [...recs].sort((a, b) => a.at - b.at || a.ts - b.ts).forEach(r => {
+    const i = phraseOf(r.at), row = mk('div', 'rec');
+    row.append(mk('div', 'lbl', (i < marks.length ? 'Phrase ' + (i + 1) : 'After last mark') + ' · ' + fmt(Math.floor(r.at)) + ' · ' + r.dur + 's'));
+    const play = mk('button', '', '▶ Mine'); play.type = 'button'; play.onclick = () => playRec(r);
+    row.append(play);
+    if (i < marks.length) {
+      const cmp = mk('button', '', 'Original → Mine'); cmp.type = 'button'; cmp.onclick = () => playPhrase(i, () => playRec(r));
+      row.append(cmp);
+    }
+    const del = mk('button', '', '×'); del.type = 'button'; del.setAttribute('aria-label', 'Delete recording');
+    del.onclick = async () => { try { await tx('readwrite', s => s.delete(r.id)); } catch (e) {} loadRecs(); };
+    row.append(del); box.append(row);
+  });
+}
+
+// Recorder
+let mr, chunks = [], stream, t0 = 0, tick, recAt = 0;
+async function toggleRec() {
+  const b = document.getElementById('bRec');
+  if (mr && mr.state === 'recording') { mr.stop(); return; }
+  if (!navigator.mediaDevices || !window.MediaRecorder) { status.textContent = 'Recording isn’t supported in this browser.'; return; }
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) { status.textContent = 'Microphone blocked. Allow it in the browser settings.'; return; }
+  clearInterval(iv); afterEnd = null; if (curAudio) curAudio.pause();
+  if (ready()) { player.pauseVideo(); recAt = Math.round(player.getCurrentTime() * 10) / 10; } else recAt = 0;
+  const type = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+  mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+  chunks = [];
+  mr.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  mr.onstop = async () => {
+    clearInterval(tick); stream.getTracks().forEach(t => t.stop());
+    b.textContent = '🎙 Record'; b.classList.remove('rec-on');
+    const blob = new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' });
+    const dur = Math.max(1, Math.round((Date.now() - t0) / 1000));
+    try {
+      await tx('readwrite', s => s.add({ vid: id, at: recAt, ts: Date.now(), dur, blob }));
+      touch(); document.getElementById('recwrap').open = true;
+      try { navigator.storage.persist(); } catch (e) {}
+    } catch (e) { status.textContent = 'Couldn’t save the recording on this device.'; }
+    loadRecs();
+  };
+  mr.start(); t0 = Date.now(); b.classList.add('rec-on'); b.textContent = '■ Stop 0s';
+  tick = setInterval(() => { b.textContent = '■ Stop ' + Math.round((Date.now() - t0) / 1000) + 's'; }, 500);
+}
+document.getElementById('bRec').onclick = toggleRec;
+
+// Export: folder on PC, share sheet on phone, separate files as a last resort
+const safe = s => s.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'notes';
+const ext = r => (r.blob.type || '').includes('mp4') ? 'm4a' : 'webm';
+function notesText() {
+  return titleText + '\n\n' + pad.value + (marks.length ? '\n\nMarks (phrase ends):\n' + marks.map((m, i) => (i + 1) + '. ' + fmt(Math.floor(m))).join('\n') : '');
+}
+function exportFiles(inFolder) {
+  const base = safe(titleText), counts = {};
+  const files = [{ name: inFolder ? 'notes.txt' : base + ' - notes.txt', blob: new Blob([notesText()], { type: 'text/plain' }) }];
+  [...recs].sort((a, b) => a.at - b.at || a.ts - b.ts).forEach(r => {
+    const i = phraseOf(r.at), k = i < marks.length ? 'phrase ' + String(i + 1).padStart(2, '0') : 'after last mark';
+    counts[k] = (counts[k] || 0) + 1;
+    const n = k + ' - take ' + counts[k] + '.' + ext(r);
+    files.push({ name: inFolder ? n : base + ' - ' + n, blob: r.blob });
+  });
+  return files;
+}
+document.getElementById('dl').onclick = async () => {
+  try {
+    if (window.showDirectoryPicker) {
+      const root = await showDirectoryPicker({ mode: 'readwrite' });
+      const dir = await root.getDirectoryHandle(safe(titleText), { create: true });
+      for (const f of exportFiles(true)) {
+        const w = await (await dir.getFileHandle(f.name, { create: true })).createWritable();
+        await w.write(f.blob); await w.close();
+      }
+      status.textContent = 'Exported to the folder “' + safe(titleText) + '”'; return;
+    }
+    const files = exportFiles(false).map(f => new File([f.blob], f.name, { type: f.blob.type }));
+    if (navigator.canShare && navigator.canShare({ files })) { await navigator.share({ files, title: titleText }); status.textContent = 'Shared'; return; }
+    for (const f of files) {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; a.click();
+      await new Promise(r => setTimeout(r, 400)); URL.revokeObjectURL(a.href);
+    }
+    status.textContent = 'Downloaded ' + files.length + ' files';
+  } catch (e) { if (e.name !== 'AbortError') status.textContent = 'Export failed. Try Copy for the text.'; }
 };
+if (id) loadRecs();
 </script>
 </body>
 </html>
