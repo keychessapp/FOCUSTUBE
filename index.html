@@ -16,6 +16,8 @@ header{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-c
 .logo{width:30px;height:21px;border-radius:6px;background:var(--red);position:relative}
 .logo::after{content:"";position:absolute;left:12px;top:6px;border-left:8px solid #fff;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
 #updated{color:var(--muted);font-size:12px}
+nav{display:flex;align-items:center;gap:16px}
+nav a{color:var(--text);text-decoration:none;font-weight:500;background:var(--panel);padding:7px 14px;border-radius:18px}
 main{max-width:1500px;margin:0 auto;padding:16px 20px 48px}
 #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:32px 16px}
 .media{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:var(--panel);cursor:pointer;border:0;padding:0;width:100%;display:block}
@@ -39,7 +41,7 @@ main{max-width:1500px;margin:0 auto;padding:16px 20px 48px}
 <body>
 <header>
   <div class="brand"><span class="logo"></span>FocusTube</div>
-  <div id="updated"></div>
+  <nav><span id="updated"></span><a href="library.html">Library</a></nav>
 </header>
 <main><div id="grid"></div></main>
 <script>
