@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FocusTube</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0f0f0f;--panel:#1c1c1c;--line:#303030;--text:#f1f1f1;--muted:#aaa;--red:#ff0033;--blue:#3ea6ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 14px/1.4 Roboto,Arial,sans-serif}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;height:56px;padding:0 20px;background:var(--bg)}
+.back{display:flex;align-items:center;gap:8px;color:var(--text);text-decoration:none;font-size:20px;font-weight:700;letter-spacing:-.5px}
+.logo{width:30px;height:21px;border-radius:6px;background:var(--red);position:relative}
+.logo::after{content:"";position:absolute;left:12px;top:6px;border-left:8px solid #fff;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+.back small{font-size:13px;font-weight:400;color:var(--muted);margin-left:8px;letter-spacing:0}
+.layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);gap:24px;max-width:1500px;margin:0 auto;padding:8px 20px 32px;align-items:start}
+.player{aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+.player iframe{width:100%;height:100%;border:0;display:block}
+h1{margin:12px 0 4px;font-size:20px;line-height:28px;font-weight:700}
+.meta{color:var(--muted);font-size:14px}
+.notes{position:sticky;top:64px;height:calc(100vh - 80px);min-height:320px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.bar h2{margin:0 auto 0 4px;font-size:16px;font-weight:500}
+.bar button{font:500 13px Roboto,Arial,sans-serif;color:var(--text);background:#2a2a2a;border:0;border-radius:18px;padding:7px 12px;cursor:pointer}
+.bar button:hover{background:#3a3a3a}
+.bar button:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+textarea{flex:1;width:100%;resize:none;border:0;background:transparent;color:var(--text);font:400 16px/1.6 Roboto,Arial,sans-serif;padding:14px 16px}
+.status{padding:6px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:12px;padding:0 0 24px}
+  .left{position:sticky;top:56px;z-index:5;background:var(--bg)}
+  .player{border-radius:0}
+  h1,.meta{padding:0 12px}
+  .notes{position:static;height:60vh;margin:0 12px}
+  header{padding:0 12px}
+}
+</style>
+</head>
+<body>
+<header><a class="back" href="./"><span class="logo"></span>FocusTube<small>← back</small></a></header>
+<div class="layout">
+  <section class="left">
+    <div class="player"><div id="yt"></div></div>
+    <h1 id="title"></h1>
+    <div class="meta" id="channel"></div>
+  </section>
+  <aside class="notes">
+    <div class="bar">
+      <h2>Notes</h2>
+      <button id="stamp" type="button">⏱ Timestamp</button>
+      <button id="copy" type="button">Copy</button>
+      <button id="dl" type="button">Download</button>
+    </div>
+    <textarea id="pad" placeholder="Write your notes here…" spellcheck="true"></textarea>
+    <div class="status" id="status">Notes are saved on this device.</div>
+  </aside>
+</div>
+<script>
+const p = new URLSearchParams(location.search);
+const id = (p.get('v') || '').match(/^[\w-]{11}$/) ? p.get('v') : null;
+const titleText = p.get('t') || 'Video';
+document.getElementById('title').textContent = titleText;
+document.getElementById('channel').textContent = p.get('c') || '';
+document.title = titleText + ' · FocusTube';
+
+const pad = document.getElementById('pad');
+const status = document.getElementById('status');
+const KEY = 'focus-notes:' + id;
+try { pad.value = localStorage.getItem(KEY) || ''; } catch (e) {}
+let timer;
+function save() {
+  try { localStorage.setItem(KEY, pad.value); status.textContent = 'Saved on this device'; }
+  catch (e) { status.textContent = 'Couldn’t save here. Use Copy or Download.'; }
+}
+pad.addEventListener('input', () => { status.textContent = 'Saving…'; clearTimeout(timer); timer = setTimeout(save, 300); });
+
+let player;
+if (id) {
+  window.onYouTubeIframeAPIReady = () => {
+    player = new YT.Player('yt', {
+      videoId: id, host: 'https://www.youtube-nocookie.com',
+      width: '100%', height: '100%',
+      playerVars: { autoplay: 1, rel: 0, playsinline: 1 }
+    });
+  };
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(s);
+} else {
+  document.getElementById('title').textContent = 'No video selected';
+}
+
+function fmt(sec) {
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  const two = n => String(n).padStart(2, '0');
+  return h ? h + ':' + two(m) + ':' + two(s) : m + ':' + two(s);
+}
+document.getElementById('stamp').onclick = () => {
+  if (!player || !player.getCurrentTime) return;
+  const tag = '[' + fmt(Math.floor(player.getCurrentTime())) + '] ';
+  const a = pad.selectionStart, b = pad.selectionEnd;
+  const before = pad.value.slice(0, a);
+  const lead = before && !before.endsWith('\n') ? '\n' : '';
+  pad.value = before + lead + tag + pad.value.slice(b);
+  const pos = (before + lead + tag).length;
+  pad.focus(); pad.setSelectionRange(pos, pos);
+  save();
+};
+document.getElementById('copy').onclick = async () => {
+  try { await navigator.clipboard.writeText(pad.value); status.textContent = 'Copied'; }
+  catch (e) { pad.select(); status.textContent = 'Press copy on your keyboard'; }
+};
+document.getElementById('dl').onclick = () => {
+  const blob = new Blob([titleText + '\n\n' + pad.value], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (titleText.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'notes') + '.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+</script>
+</body>
+</html>

@@ -80,16 +80,8 @@ function card(v) {
   info.append(av, text);
   wrap.append(media, info);
   const play = () => {
-    const f = el('iframe');
-    f.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?autoplay=1&rel=0';
-    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-    f.allowFullscreen = true;
-    f.title = v.title;
-    media.replaceChildren(f);
-    media.style.cursor = 'default';
-    media.onclick = null;
-    if (chip) chip.remove();
     markSeen(v.source, v.id);
+    location.href = 'watch.html?v=' + encodeURIComponent(v.id) + '&t=' + encodeURIComponent(v.title) + '&c=' + encodeURIComponent(v.channel);
   };
   media.onclick = play;
   title.style.cursor = 'pointer';
