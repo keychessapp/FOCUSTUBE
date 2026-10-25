@@ -33,7 +33,7 @@ h1{font-size:20px;margin:8px 0 16px}
 </style>
 </head>
 <body>
-<header><a class="back" href="./"><span class="logo"></span>FocusTube</a><span id="size"></span></header>
+<header><a class="back" href="./"><span class="logo"></span>FocusTube</a><span style="display:flex;align-items:center;gap:14px"><span id="size"></span><a href="cards.html" style="color:var(--text);text-decoration:none;font-weight:500;background:var(--panel);padding:7px 14px;border-radius:18px">Cards</a></span></header>
 <main><h1>Library</h1><div id="list"></div></main>
 <script>
 const list = document.getElementById('list');
@@ -46,16 +46,41 @@ function ago(ts) {
 function lib() { try { return JSON.parse(localStorage.getItem('focus-lib') || '{}'); } catch (e) { return {}; } }
 function notes(id) { try { return localStorage.getItem('focus-notes:' + id) || ''; } catch (e) { return ''; } }
 function mk(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
-function size() {
-  let b = 0;
-  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('focus-')) b += (k.length + localStorage.getItem(k).length) * 2; } } catch (e) {}
-  document.getElementById('size').textContent = 'Using ' + (b < 1024 ? b + ' B' : (b / 1024).toFixed(1) + ' KB') + ' on this device';
+const dbp = new Promise((res, rej) => {
+  try {
+    const r = indexedDB.open('focustube', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('recs', { keyPath: 'id', autoIncrement: true }).createIndex('vid', 'vid'); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  } catch (e) { rej(e); }
+});
+async function tx(mode, fn) {
+  const d = await dbp;
+  return new Promise((res, rej) => {
+    const t = d.transaction('recs', mode); const q = fn(t.objectStore('recs'));
+    t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error);
+  });
 }
-function render() {
-  const l = lib();
+async function recStats() {
+  const out = { total: 0 };
+  try { for (const r of (await tx('readonly', s => s.getAll())) || []) { const o = out[r.vid] || (out[r.vid] = { n: 0 }); o.n++; out.total += r.blob.size; } } catch (e) {}
+  return out;
+}
+async function dropRecs(id) {
+  try {
+    const keys = await tx('readonly', s => s.index('vid').getAllKeys(id));
+    await tx('readwrite', s => { (keys || []).forEach(k => s.delete(k)); });
+  } catch (e) {}
+}
+function size(extra) {
+  let b = extra || 0;
+  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('focus-')) b += (k.length + localStorage.getItem(k).length) * 2; } } catch (e) {}
+  document.getElementById('size').textContent = 'Using ' + (b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB') + ' on this device';
+}
+async function render() {
+  const l = lib(), stats = await recStats();
   const ids = Object.keys(l).sort((a, b) => l[b].updated - l[a].updated);
   list.replaceChildren();
-  size();
+  size(stats.total);
   if (!ids.length) {
     const e = mk('div', 'empty');
     e.append(mk('strong', '', 'Nothing here yet'), document.createTextNode('Videos where you add a mark or a note are saved here automatically.'));
@@ -66,12 +91,13 @@ function render() {
     const row = mk('div', 'row');
     const img = mk('img'); img.src = 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg'; img.alt = ''; img.loading = 'lazy';
     const txt = mk('div', 'txt');
-    const meta = mk('div', 'm', (v.c ? v.c + ' · ' : '') + (v.marks || []).length + ' marks · ' + words + ' words · ' + ago(v.updated));
+    const meta = mk('div', 'm', (v.c ? v.c + ' · ' : '') + (v.marks || []).length + ' marks · ' + words + ' words · ' + ((stats[id] || {}).n || 0) + ' recordings · ' + ago(v.updated));
     const btns = mk('div', 'btns');
     const open = mk('a', '', 'Open'); open.href = 'watch.html?v=' + encodeURIComponent(id) + '&t=' + encodeURIComponent(v.t || 'Video') + '&c=' + encodeURIComponent(v.c || '');
     const del = mk('button', '', 'Delete'); del.type = 'button';
-    del.onclick = () => {
-      if (!confirm('Delete the marks and notes of this video from this device?')) return;
+    del.onclick = async () => {
+      if (!confirm('Delete the marks, notes and recordings of this video from this device?')) return;
+      await dropRecs(id);
       const cur = lib(); delete cur[id];
       try { localStorage.setItem('focus-lib', JSON.stringify(cur)); localStorage.removeItem('focus-notes:' + id); } catch (e) {}
       render();

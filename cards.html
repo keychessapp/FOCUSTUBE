@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cards · FocusTube</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0f0f0f;--s1:#171717;--s2:#212121;--s3:#2c2c2c;--line:#2a2a2a;--text:#f1f1f1;--muted:#9b9b9b;--accent:#3ea6ff;--red:#ff0033;--good:#4ade80;--warn:#fbbf24;--bad:#f87171}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 14px/1.45 Roboto,Arial,sans-serif}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 20px;background:var(--bg)}
+.back{display:flex;align-items:center;gap:8px;color:var(--text);text-decoration:none;font-size:20px;font-weight:700;letter-spacing:-.5px}
+.logo{width:30px;height:21px;border-radius:6px;background:var(--red);position:relative}
+.logo::after{content:"";position:absolute;left:12px;top:6px;border-left:8px solid #fff;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+nav{display:flex;gap:8px}
+nav a{color:var(--text);text-decoration:none;font-weight:500;background:var(--s2);padding:7px 14px;border-radius:18px}
+nav a.on{background:var(--text);color:#000}
+.wrap{max-width:1100px;margin:0 auto;padding:8px 20px 64px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.4px;margin:14px 0 4px}
+.sub{color:var(--muted);margin-bottom:22px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 20px}
+.grow{flex:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px}
+.deck{background:var(--s1);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.deck:hover{border-color:#444}
+.deck img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--s2)}
+.deck .in{padding:14px 16px 16px}
+.deck h3{margin:0;font-size:16px;line-height:22px;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.muted{color:var(--muted)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
+.pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500;background:var(--s2);color:var(--muted);white-space:nowrap}
+.pill.due{background:rgba(62,166,255,.15);color:var(--accent)}
+.pill.new{background:rgba(74,222,128,.15);color:var(--good)}
+.pill.draft{background:rgba(251,191,36,.13);color:var(--warn)}
+.btn{font:500 14px Roboto,Arial,sans-serif;border:0;border-radius:22px;padding:10px 18px;cursor:pointer;color:var(--text);background:var(--s3);display:inline-block}
+.btn:hover{filter:brightness(1.15)}
+.btn.primary{background:var(--accent);color:#06121c}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 1px #3a3a3a}
+.btn.danger{color:var(--bad)}
+.btn.wide{width:100%;padding:15px;font-size:15px}
+.btn:disabled{opacity:.4;cursor:default;filter:none}
+.btn:focus-visible,.row:focus-visible,.play:focus-visible,.rate button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{background:var(--s1);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.rhead{display:flex;align-items:center;gap:14px;padding:12px 16px;cursor:pointer}
+.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--s2);display:grid;place-items:center;font-size:12px;font-weight:500;color:var(--muted)}
+.rtxt{flex:1;min-width:0}
+.rt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.rs{color:var(--muted);font-size:12px}
+.edit{padding:4px 16px 16px;border-top:1px solid var(--line);display:grid;gap:12px}
+.edit label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}
+textarea{width:100%;min-height:72px;resize:vertical;background:var(--s2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:400 16px/1.5 Roboto,Arial,sans-serif}
+textarea:focus-visible{outline:2px solid var(--accent);outline-offset:-1px}
+.trim{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.trim b{font-weight:500;min-width:96px}
+.trim .btn{padding:6px 12px}
+.ytbox{width:min(100%,356px);height:200px;margin:14px auto 0;border-radius:12px;overflow:hidden;background:#000}
+.ytbox iframe{width:100%;height:100%;border:0;display:block}
+.study{max-width:640px;margin:0 auto}
+.top{display:flex;align-items:center;gap:14px;padding:8px 0 18px}
+.progress{flex:1;height:6px;background:var(--s2);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.qcard{background:var(--s1);border:1px solid var(--line);border-radius:20px;padding:28px 24px;margin-bottom:14px}
+.tag{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.big{font-size:24px;line-height:1.35;font-weight:500;margin:0}
+.small{color:var(--muted);margin:10px 0 0;font-size:15px}
+.audio{display:flex;align-items:center;gap:12px;margin-top:22px;background:var(--s2);padding:8px 16px 8px 8px;border-radius:30px}
+.play{width:40px;height:40px;border-radius:50%;border:0;background:var(--text);color:#000;font-size:15px;cursor:pointer;flex:none}
+.track{flex:1;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.track i{display:block;height:100%;width:0;background:var(--accent)}
+.chip{border:0;border-radius:14px;padding:4px 10px;font:500 12px Roboto,Arial,sans-serif;background:var(--s3);color:var(--text);cursor:pointer}
+.chip.on{background:var(--accent);color:#06121c}
+.takes{margin-top:14px;display:grid;gap:6px}
+.take{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.take .chip{background:var(--s2)}
+.rate{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rate button{border:0;border-radius:14px;padding:12px 4px;font:500 14px Roboto,Arial,sans-serif;cursor:pointer;color:var(--text);background:var(--s2)}
+.rate small{display:block;font-weight:400;color:var(--muted);margin-top:2px;font-size:12px}
+.rate .again{box-shadow:inset 0 0 0 1px rgba(248,113,113,.55)}
+.rate .hard{box-shadow:inset 0 0 0 1px rgba(251,191,36,.5)}
+.rate .good{box-shadow:inset 0 0 0 1px rgba(74,222,128,.55)}
+.rate .easy{box-shadow:inset 0 0 0 1px rgba(62,166,255,.55)}
+.live{background:#b3001f !important;color:#fff !important}
+.actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.empty{max-width:440px;margin:12vh auto;text-align:center;color:var(--muted);font-size:16px}
+.empty strong{display:block;color:var(--text);font-size:20px;margin-bottom:8px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#f1f1f1;color:#111;padding:10px 18px;border-radius:22px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:90vw}
+#toast.on{opacity:1}
+@media (max-width:600px){.wrap{padding:8px 12px 48px}header{padding:0 12px}.big{font-size:21px}.qcard{padding:22px 18px}.rate button{font-size:13px}}
+</style>
+</head>
+<body>
+<header><a class="back" href="./"><span class="logo"></span>FocusTube</a><nav><a href="library.html">Library</a><a class="on" href="cards.html">Cards</a></nav></header>
+<div id="app"></div>
+<div id="toast" role="status"></div>
+<script>
+// PURE-START
+const NEW_PER_DAY = 10;
+function nextState(c, r) {
+  const n = { ease: c.ease || 2.5, ivl: c.ivl || 0, reps: c.reps || 0, lapses: c.lapses || 0 };
+  const day = 864e5;
+  if (r === 'again') { n.lapses++; n.reps = 0; n.ivl = 0; n.ease = Math.max(1.3, n.ease - 0.2); n.due = Date.now() + 10 * 60e3; return n; }
+  if (r === 'hard') { n.ivl = Math.max(1, Math.round((n.ivl || 1) * 1.2)); n.ease = Math.max(1.3, n.ease - 0.15); }
+  else if (r === 'good') { n.ivl = n.reps === 0 ? 1 : n.reps === 1 ? 3 : Math.max(n.ivl + 1, Math.round(n.ivl * n.ease)); }
+  else { n.ivl = n.reps === 0 ? 4 : Math.round(Math.max(n.ivl, 1) * n.ease * 1.3); n.ease += 0.15; }
+  n.reps++; n.due = Date.now() + n.ivl * day; return n;
+}
+function fmtIvl(ms) {
+  const m = ms / 6e4;
+  if (m < 60) return Math.max(1, Math.round(m)) + 'm';
+  const h = m / 60; if (h < 24) return Math.round(h) + 'h';
+  const d = h / 24; if (d < 30) return Math.round(d) + 'd';
+  if (d < 365) return Math.round(d / 30) + 'mo';
+  return (d / 365).toFixed(1) + 'y';
+}
+function noteLines(text) {
+  const out = [];
+  for (const ln of text.split('\n')) {
+    const m = ln.match(/^\s*\[(?:(\d+):)?(\d+):(\d{2})\]\s*(.*)$/);
+    if (m) out.push({ t: (+m[1] || 0) * 3600 + (+m[2]) * 60 + (+m[3]), txt: m[4].trim() });
+  }
+  return out;
+}
+function phraseText(lines, s, e) {
+  return lines.filter(l => l.t >= Math.ceil(s) && l.t <= e + 0.5 && l.txt).map(l => l.txt).join(' ');
+}
+function validatePack(o) {
+  if (!o || o.format !== 'focustube-pack' || !o.video || !/^[\w-]{11}$/.test(o.video.id) || !Array.isArray(o.cards)) return null;
+  const cs = [];
+  for (const c of o.cards.slice(0, 500)) {
+    const s = +c.start, e = +c.end;
+    if (!isFinite(s) || !isFinite(e) || s < 0 || e <= s || e > 86400) continue;
+    cs.push({ s: Math.round(s * 10) / 10, e: Math.round(e * 10) / 10, tgt: String(c.target || '').slice(0, 500), nat: String(c.native || '').slice(0, 500) });
+  }
+  return { id: o.video.id, title: String(o.video.title || 'Video').slice(0, 200), channel: String(o.video.channel || '').slice(0, 200), cards: cs };
+}
+// PURE-END
+
+const LS = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
+const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast('Couldn’t save on this device'); } };
+let cards = LS('focus-cards', []);
+const saveCards = () => put('focus-cards', cards);
+const lib = () => LS('focus-lib', {});
+const notesOf = id => { try { return localStorage.getItem('focus-notes:' + id) || ''; } catch (e) { return ''; } };
+const done = c => !!(c.tgt.trim() && c.nat.trim());
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+const today = () => new Date().toISOString().slice(0, 10);
+const introduced = vid => { const d = LS('focus-newday', {}); return d.d === today() ? ((d.n || {})[vid] || 0) : 0; };
+function bumpIntro(vid) { let d = LS('focus-newday', {}); if (d.d !== today()) d = { d: today(), n: {} }; d.n[vid] = (d.n[vid] || 0) + 1; put('focus-newday', d); }
+const fmtT = s => { const m = Math.floor(s / 60), x = s % 60; return m + ':' + (x < 10 ? '0' : '') + x.toFixed(1); };
+const h = (t, c, ...k) => { const e = document.createElement(t); if (c) e.className = c; for (const x of k.flat()) if (x != null && x !== false) e.append(x.nodeType ? x : document.createTextNode(x)); return e; };
+const btn = (t, c, f) => { const b = h('button', 'btn ' + (c || ''), t); b.type = 'button'; b.onclick = f; return b; };
+let tt; function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2600); }
+function pillFor(c) {
+  if (!done(c)) return h('span', 'pill draft', 'Draft');
+  if (!c.seen) return h('span', 'pill new', 'New');
+  if (c.due <= Date.now()) return h('span', 'pill due', 'Due');
+  return h('span', 'pill', 'In ' + fmtIvl(c.due - Date.now()));
+}
+
+// ---- recordings storage (shared with the watch page)
+const dbp = new Promise((res, rej) => {
+  try {
+    const r = indexedDB.open('focustube', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('recs', { keyPath: 'id', autoIncrement: true }).createIndex('vid', 'vid'); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  } catch (e) { rej(e); }
+});
+async function tx(mode, fn) {
+  const d = await dbp;
+  return new Promise((res, rej) => {
+    const t = d.transaction('recs', mode); const q = fn(t.objectStore('recs'));
+    t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error);
+  });
+}
+async function takesOf(c) {
+  try { return ((await tx('readonly', s => s.index('vid').getAll(c.vid))) || []).filter(r => r.at > c.s && r.at <= c.e + 0.5).sort((a, b) => b.ts - a.ts); }
+  catch (e) { return []; }
+}
+let curAudio = null;
+function playBlob(r) {
+  if (curAudio) curAudio.pause();
+  if (yt && ytOK) yt.pauseVideo();
+  const u = URL.createObjectURL(r.blob); curAudio = new Audio(u);
+  curAudio.onended = () => URL.revokeObjectURL(u); curAudio.play();
+}
+
+// ---- player
+let yt = null, ytOK = false, iv = null;
+function loadYT() {
+  if (window.YT && YT.Player) return Promise.resolve();
+  return new Promise(r => { window.onYouTubeIframeAPIReady = r; const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.append(s); });
+}
+function destroyPlayer() { clearInterval(iv); if (yt && yt.destroy) { try { yt.destroy(); } catch (e) {} } yt = null; ytOK = false; }
+async function mountPlayer(vid, host, onReady) {
+  destroyPlayer();
+  await loadYT();
+  const inner = h('div'); host.replaceChildren(inner);
+  yt = new YT.Player(inner, { videoId: vid, host: 'https://www.youtube-nocookie.com', width: '100%', height: '200', playerVars: { rel: 0, playsinline: 1 }, events: { onReady: () => { ytOK = true; if (onReady) onReady(); } } });
+}
+function playSeg(s, e, bar, after) {
+  if (!ytOK) { toast('The player is still loading…'); return; }
+  clearInterval(iv); yt.seekTo(s, true); yt.playVideo();
+  const t0 = Date.now();
+  iv = setInterval(() => {
+    const t = yt.getCurrentTime();
+    if (bar) bar.style.width = Math.max(0, Math.min(1, (t - s) / (e - s))) * 100 + '%';
+    if (Date.now() - t0 > 400 && t >= e - 0.05) { yt.pauseVideo(); clearInterval(iv); if (bar) bar.style.width = '100%'; if (after) after(); }
+  }, 60);
+}
+
+// ---- recorder
+let mr = null, stream = null, chunks = [], r0 = 0, tick = null;
+async function recToggle(c, b, after) {
+  if (mr && mr.state === 'recording') { mr.stop(); return; }
+  if (!navigator.mediaDevices || !window.MediaRecorder) { toast('Recording isn’t supported in this browser'); return; }
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { toast('Microphone blocked. Allow it in browser settings'); return; }
+  clearInterval(iv); if (yt && ytOK) yt.pauseVideo(); if (curAudio) curAudio.pause();
+  const type = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+  mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined); chunks = [];
+  mr.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  mr.onstop = async () => {
+    clearInterval(tick); stream.getTracks().forEach(t => t.stop());
+    b.textContent = '🎙 Record again'; b.classList.remove('live');
+    const blob = new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' });
+    const dur = Math.max(1, Math.round((Date.now() - r0) / 1000));
+    try { await tx('readwrite', s => s.add({ vid: c.vid, at: c.e, ts: Date.now(), dur, blob })); try { navigator.storage.persist(); } catch (e) {} }
+    catch (e) { toast('Couldn’t save the recording'); }
+    after();
+  };
+  mr.start(); r0 = Date.now(); b.classList.add('live'); b.textContent = '■ Stop 0s';
+  tick = setInterval(() => { b.textContent = '■ Stop ' + Math.round((Date.now() - r0) / 1000) + 's'; }, 500);
+}
+
+// ---- cards from marks
+function pendingMarks(vid) {
+  const e = lib()[vid]; if (!e) return [];
+  return (e.marks || []).slice().sort((a, b) => a - b).map((m, i, a) => ({ s: i ? a[i - 1] : 0, e: m })).filter(p => !cards.some(c => c.vid === vid && Math.abs(c.e - p.e) < 0.6));
+}
+function syncFromMarks(vid) {
+  const lines = noteLines(notesOf(vid)), p = pendingMarks(vid);
+  p.forEach(x => cards.push({ id: uid(), vid, s: x.s, e: x.e, tgt: phraseText(lines, x.s, x.e), nat: '', ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0, seen: 0, created: Date.now() }));
+  if (p.length) saveCards(); return p.length;
+}
+
+// ---- packs (no recordings)
+const safe = s => (s || '').replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'deck';
+function exportPack(vid) {
+  const l = lib()[vid] || {};
+  const pack = { format: 'focustube-pack', version: 1, video: { id: vid, title: l.t || '', channel: l.c || '' },
+    cards: cards.filter(c => c.vid === vid).sort((a, b) => a.s - b.s).map(c => ({ start: c.s, end: c.e, target: c.tgt, native: c.nat })) };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(pack, null, 2)], { type: 'application/json' }));
+  a.download = safe(l.t) + '.focuspack.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+async function importPack(file) {
+  let p; try { p = validatePack(JSON.parse(await file.text())); } catch (e) { p = null; }
+  if (!p || !p.cards.length) { toast('That file isn’t a valid FocusTube pack'); return; }
+  let n = 0;
+  p.cards.forEach(x => { if (cards.some(c => c.vid === p.id && Math.abs(c.e - x.e) < 0.6)) return; cards.push({ id: uid(), vid: p.id, s: x.s, e: x.e, tgt: x.tgt, nat: x.nat, ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0, seen: 0, created: Date.now() }); n++; });
+  saveCards();
+  const L = lib(); if (!L[p.id]) { L[p.id] = { t: p.title, c: p.channel, marks: p.cards.map(x => x.e).sort((a, b) => a - b), added: Date.now(), updated: Date.now() }; put('focus-lib', L); }
+  toast(n + ' cards imported'); location.hash = '#deck/' + p.id;
+}
+
+// ---- views
+const app = document.getElementById('app');
+function counts(vid) {
+  const mine = cards.filter(c => c.vid === vid), now = Date.now();
+  const dueN = mine.filter(c => done(c) && c.seen && c.due <= now).length;
+  const fresh = Math.min(mine.filter(c => done(c) && !c.seen).length, Math.max(0, NEW_PER_DAY - introduced(vid)));
+  return { total: mine.length, drafts: mine.filter(c => !done(c)).length, due: dueN, fresh };
+}
+function decksView() {
+  const l = lib();
+  const vids = [...new Set([...Object.keys(l).filter(k => (l[k].marks || []).length), ...cards.map(c => c.vid)])];
+  const wrap = h('div', 'wrap');
+  let due = 0, fresh = 0; vids.forEach(v => { const c = counts(v); due += c.due; fresh += c.fresh; });
+  const file = h('input'); file.type = 'file'; file.accept = '.json,application/json'; file.hidden = true;
+  file.onchange = () => file.files[0] && importPack(file.files[0]);
+  wrap.append(h('h1', '', 'Cards'), h('div', 'sub', vids.length ? due + ' due and ' + fresh + ' new today' : 'Your decks appear here'),
+    h('div', 'bar', h('div', 'grow'), btn('Import pack', 'ghost', () => file.click()), file));
+  if (!vids.length) {
+    wrap.append(h('div', 'empty', h('strong', '', 'No decks yet'), 'Add marks to a video in the player, then come back. Each marked phrase becomes a card.'));
+  } else {
+    const g = h('div', 'grid');
+    vids.forEach(v => {
+      const i = l[v] || { t: 'Video', c: '' }, c = counts(v);
+      const card = h('div', 'deck');
+      const img = h('img'); img.src = 'https://i.ytimg.com/vi/' + v + '/hqdefault.jpg'; img.alt = ''; img.loading = 'lazy';
+      const pills = h('div', 'pills', h('span', 'pill due', c.due + ' due'), h('span', 'pill new', c.fresh + ' new'), c.drafts ? h('span', 'pill draft', c.drafts + ' drafts') : null, h('span', 'pill', c.total + ' cards'));
+      const study = btn('Study', 'primary', e => { e.stopPropagation(); location.hash = '#study/' + v; }); study.disabled = !(c.due + c.fresh);
+      card.append(img, h('div', 'in', h('h3', '', i.t || 'Video'), h('div', 'muted', i.c || ''), pills, h('div', 'actions', study)));
+      card.onclick = () => { location.hash = '#deck/' + v; };
+      g.append(card);
+    });
+    wrap.append(g);
+  }
+  return wrap;
+}
+function deckView(vid) {
+  const l = lib()[vid] || { t: 'Video', c: '' };
+  if (!cards.some(c => c.vid === vid)) { const n = syncFromMarks(vid); if (n) toast(n + ' phrases added as cards'); }
+  const wrap = h('div', 'wrap'), list = h('div', 'rows'), head = h('div', 'sub'), bar = h('div', 'bar');
+  let open = null;
+  function top() {
+    const c = counts(vid), p = pendingMarks(vid).length;
+    head.textContent = c.total + ' cards · ' + c.due + ' due · ' + c.fresh + ' new today' + (c.drafts ? ' · ' + c.drafts + ' drafts' : '');
+    const st = btn('Study', 'primary', () => { location.hash = '#study/' + vid; }); st.disabled = !(c.due + c.fresh);
+    bar.replaceChildren(btn('← Decks', 'ghost', () => { location.hash = ''; }), h('div', 'grow'),
+      p ? btn('Add ' + p + ' new phrases', 'ghost', () => { syncFromMarks(vid); top(); draw(); }) : null,
+      btn('Share pack', 'ghost', () => exportPack(vid)), st);
+  }
+  function draw() {
+    list.replaceChildren(); destroyPlayer(); let host = null, openCard = null;
+    cards.filter(c => c.vid === vid).sort((a, b) => a.s - b.s).forEach((c, i) => {
+      const row = h('div', 'row');
+      const hd = h('div', 'rhead', h('span', 'num', String(i + 1)), h('div', 'rtxt', h('div', 'rt', c.nat || c.tgt || 'Empty card'), h('div', 'rs', fmtT(c.s) + ' – ' + fmtT(c.e))), pillFor(c));
+      hd.tabIndex = 0; hd.onclick = () => { open = open === c.id ? null : c.id; draw(); };
+      hd.onkeydown = e => { if (e.key === 'Enter') hd.onclick(); };
+      row.append(hd);
+      if (open === c.id) {
+        const t1 = h('textarea'); t1.value = c.tgt; t1.oninput = () => { c.tgt = t1.value; saveCards(); };
+        const t2 = h('textarea'); t2.value = c.nat; t2.oninput = () => { c.nat = t2.value; saveCards(); };
+        const ls = h('span', '', fmtT(c.s)), le = h('span', '', fmtT(c.e));
+        const adj = (k, d) => { const v = Math.round((c[k] + d) * 10) / 10; if (v < 0 || (k === 's' ? c.e - v : v - c.s) < 0.5) return; c[k] = v; saveCards(); ls.textContent = fmtT(c.s); le.textContent = fmtT(c.e); };
+        host = h('div', 'ytbox'); openCard = c;
+        row.append(h('div', 'edit',
+          h('div', '', h('label', '', 'In the video’s language'), t1, h('label', '', 'In your language'), t2),
+          h('div', 'trim', h('b', '', 'Start '), ls, btn('−0.5', '', () => adj('s', -0.5)), btn('+0.5', '', () => adj('s', 0.5))),
+          h('div', 'trim', h('b', '', 'End '), le, btn('−0.5', '', () => adj('e', -0.5)), btn('+0.5', '', () => adj('e', 0.5))),
+          h('div', 'actions', btn('▶ Preview', 'primary', () => playSeg(c.s, c.e, null, null)),
+            btn('Delete card', 'danger ghost', () => { if (confirm('Delete this card?')) { cards = cards.filter(x => x.id !== c.id); saveCards(); open = null; top(); draw(); } }),
+            btn('Done', 'ghost', () => { open = null; top(); draw(); })), host));
+      }
+      list.append(row);
+    });
+    if (!list.children.length) list.append(h('div', 'empty', h('strong', '', 'No cards yet'), 'Mark phrases in the player, then use “Add new phrases”.'));
+    if (host) mountPlayer(vid, host);
+  }
+  top(); draw();
+  wrap.append(h('h1', '', l.t || 'Video'), head, bar, list);
+  return wrap;
+}
+function studyView(vid) {
+  const now = Date.now(), mine = cards.filter(c => c.vid === vid && done(c));
+  const due = mine.filter(c => c.seen && c.due <= now).sort((a, b) => a.due - b.due);
+  const fresh = mine.filter(c => !c.seen).sort((a, b) => a.created - b.created || a.s - b.s).slice(0, Math.max(0, NEW_PER_DAY - introduced(vid)));
+  const queue = [...due, ...fresh], total = queue.length; let finished = 0;
+  const wrap = h('div', 'wrap'), box = h('div', 'study'), body = h('div'), host = h('div', 'ytbox'), fill = h('i'), left = h('span', 'muted');
+  box.append(h('div', 'top', btn('✕', 'ghost', () => { location.hash = '#deck/' + vid; }), h('div', 'progress', fill), left), body, host);
+  wrap.append(box);
+  if (!total) {
+    const next = cards.filter(c => c.vid === vid && done(c) && c.seen).sort((a, b) => a.due - b.due)[0];
+    return h('div', 'wrap', h('div', 'empty', h('strong', '', 'All caught up'), next ? 'Next review in ' + fmtIvl(next.due - now) + '.' : 'Complete some cards (both texts) to study them.', h('div', 'actions', btn('Back to deck', 'ghost', () => { location.hash = '#deck/' + vid; }))));
+  }
+  const cue = c => { if (ytOK) yt.cueVideoById({ videoId: vid, startSeconds: c.s }); };
+  function progress() { left.textContent = queue.length + ' left'; fill.style.width = (finished / (finished + queue.length)) * 100 + '%'; }
+  function front() {
+    const c = queue[0]; if (!c) return end();
+    progress(); cue(c);
+    const show = () => reveal(c);
+    document.onkeydown = e => { if (e.key === ' ') { e.preventDefault(); show(); } };
+    body.replaceChildren(h('div', 'qcard', h('div', 'tag', 'Say it in the video’s language'), h('p', 'big', c.nat)), btn('Show answer', 'primary wide', show));
+  }
+  function reveal(c) {
+    const bar = h('i'), play = h('button', 'play', '▶'); play.type = 'button'; play.setAttribute('aria-label', 'Play original');
+    const slow = h('button', 'chip', '0.75×'); slow.type = 'button';
+    let isSlow = false;
+    slow.onclick = () => { isSlow = !isSlow; slow.classList.toggle('on', isSlow); if (ytOK) yt.setPlaybackRate(isSlow ? 0.75 : 1); };
+    const go = () => playSeg(c.s, c.e, bar, null); play.onclick = go;
+    const takes = h('div', 'takes'), rec = btn('🎙 Record', 'wide ghost', () => recToggle(c, rec, loadTakes));
+    async function loadTakes() {
+      const t = await takesOf(c); takes.replaceChildren();
+      t.slice(0, 3).forEach((r, i) => {
+        const p = h('button', 'chip', '▶'); p.type = 'button'; p.onclick = () => playBlob(r);
+        const x = h('button', 'chip', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Delete take'); x.onclick = async () => { try { await tx('readwrite', s => s.delete(r.id)); } catch (e) {} loadTakes(); };
+        const cmp = h('button', 'chip', 'Original → Mine'); cmp.type = 'button'; cmp.onclick = () => playSeg(c.s, c.e, bar, () => playBlob(r));
+        takes.append(h('div', 'take', p, i === 0 ? 'Latest take · ' : 'Take · ', r.dur + 's', cmp, x));
+      });
+      if (t.length) rec.textContent = '🎙 Record again';
+    }
+    const rate = h('div', 'rate');
+    [['again', 'Again'], ['hard', 'Hard'], ['good', 'Good'], ['easy', 'Easy']].forEach(([k, label], i) => {
+      const b = h('button', k, h('span', '', label), h('small', '', fmtIvl(nextState(c, k).due - Date.now()))); b.type = 'button';
+      b.onclick = () => grade(c, k); rate.append(b);
+    });
+    document.onkeydown = e => {
+      if (e.key === ' ') { e.preventDefault(); go(); }
+      else if (e.key >= '1' && e.key <= '4') grade(c, ['again', 'hard', 'good', 'easy'][+e.key - 1]);
+      else if (e.key === 'r' || e.key === 'R') rec.click();
+    };
+    body.replaceChildren(
+      h('div', 'qcard', h('div', 'tag', 'In the video’s language'), h('p', 'big', c.tgt), h('p', 'small', c.nat),
+        h('div', 'audio', play, h('div', 'track', bar), h('span', 'muted', Math.round((c.e - c.s) * 10) / 10 + 's'), slow), takes),
+      rec, h('div', 'actions'), rate);
+    loadTakes(); go();
+  }
+  function grade(c, r) {
+    if (mr && mr.state === 'recording') return;
+    clearInterval(iv); if (yt && ytOK) yt.pauseVideo();
+    if (!c.seen) bumpIntro(vid);
+    Object.assign(c, nextState(c, r), { seen: Date.now() }); saveCards();
+    queue.shift();
+    if (r === 'again') queue.splice(Math.min(3, queue.length), 0, c); else finished++;
+    front();
+  }
+  function end() {
+    progress(); document.onkeydown = null; destroyPlayer(); host.remove();
+    const next = cards.filter(c => c.vid === vid && done(c) && c.seen).sort((a, b) => a.due - b.due)[0];
+    body.replaceChildren(h('div', 'qcard', h('div', 'tag', 'Session complete'), h('p', 'big', finished + ' cards reviewed'), h('p', 'small', next ? 'Next review in ' + fmtIvl(Math.max(0, next.due - Date.now())) + '.' : '')),
+      h('div', 'actions', btn('Back to deck', 'primary', () => { location.hash = '#deck/' + vid; }), btn('All decks', 'ghost', () => { location.hash = ''; })));
+  }
+  mountPlayer(vid, host, () => cue(queue[0] || { s: 0 }));
+  front();
+  return wrap;
+}
+function render() {
+  destroyPlayer(); document.onkeydown = null;
+  const m = location.hash.match(/^#(deck|study)\/([\w-]{11})$/);
+  app.replaceChildren(m ? (m[1] === 'deck' ? deckView(m[2]) : studyView(m[2])) : decksView());
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', render);
+render();
+</script>
+</body>
+</html>
