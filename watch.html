@@ -2,404 +2,121 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FocusTube</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:dark;--bg:#0f0f0f;--panel:#1c1c1c;--line:#303030;--text:#f1f1f1;--muted:#aaa;--red:#ff0033;--blue:#3ea6ff}
+:root{color-scheme:dark;--bg:#0f0f0f;--s1:#171717;--s2:#212121;--s3:#2e2e2e;--line:#2a2a2a;--text:#f1f1f1;--muted:#9b9b9b;--red:#ff0033;--blue:#3ea6ff;--good:#4ade80;--warn:#fbbf24;--bad:#f87171}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:400 14px/1.4 Roboto,Arial,sans-serif}
 header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 20px;background:var(--bg)}
-nav a{color:var(--text);text-decoration:none;font-weight:500;background:#272727;padding:7px 14px;border-radius:18px}
 .back{display:flex;align-items:center;gap:8px;color:var(--text);text-decoration:none;font-size:20px;font-weight:700;letter-spacing:-.5px}
+.back small{font-size:13px;font-weight:400;color:var(--muted);margin-left:8px;letter-spacing:0}
 .logo{width:30px;height:21px;border-radius:6px;background:var(--red);position:relative}
 .logo::after{content:"";position:absolute;left:12px;top:6px;border-left:8px solid #fff;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
-.back small{font-size:13px;font-weight:400;color:var(--muted);margin-left:8px;letter-spacing:0}
-.layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);gap:24px;max-width:1500px;margin:0 auto;padding:8px 20px 32px;align-items:start}
+nav a{color:var(--text);text-decoration:none;font-weight:500;background:var(--s2);padding:7px 14px;border-radius:18px}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr);gap:24px;max-width:1500px;margin:0 auto;padding:8px 20px 32px;align-items:start}
 .player{aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
 .player iframe{width:100%;height:100%;border:0;display:block}
-h1{margin:12px 0 4px;font-size:20px;line-height:28px;font-weight:700}
-.meta{color:var(--muted);font-size:14px}
-.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.ctrl button{flex:1 1 auto;font:500 14px Roboto,Arial,sans-serif;color:var(--text);background:#272727;border:0;border-radius:20px;padding:11px 14px;cursor:pointer}
-.ctrl button:hover{background:#3a3a3a}
-.ctrl .mark{background:var(--red)}
+.ctrl{display:flex;gap:8px;margin-top:10px}
+.ctrl button{flex:1;font:500 14px Roboto,Arial,sans-serif;color:var(--text);background:var(--s2);border:0;border-radius:22px;padding:12px 8px;cursor:pointer}
+.ctrl button:hover{background:var(--s3)}
+.ctrl .mark{flex:1.5;background:var(--red)}
 .ctrl .mark:hover{background:#d4002a}
-.ctrl button:focus-visible,.chip button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;min-height:44px}
-.chip{display:flex;flex:none;background:#272727;border-radius:16px;overflow:hidden}
-.chip.on{background:#3b3b3b;box-shadow:inset 0 0 0 1px var(--blue)}
-.chip button{font:400 13px Roboto,Arial,sans-serif;color:var(--text);background:none;border:0;padding:6px 10px;cursor:pointer}
-.chip .x{color:var(--muted);padding:6px 10px 6px 2px}
-.ctrl .rec-on{background:#b3001f}
-.recwrap{border-top:1px solid var(--line);max-height:45%;overflow:auto}
-.recwrap summary{padding:10px 14px;cursor:pointer;font-weight:500}
-.rec{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 14px 10px}
-.rec .lbl{flex:1 1 100%;color:var(--muted);font-size:13px}
-.rec button{font:500 13px Roboto,Arial,sans-serif;color:var(--text);background:#2a2a2a;border:0;border-radius:16px;padding:6px 12px;cursor:pointer}
-.rec button:hover{background:#3a3a3a}
-.hint{color:var(--muted);font-size:13px;padding-top:12px}
-.notes{position:sticky;top:64px;height:calc(100vh - 80px);min-height:320px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
-.bar h2{margin:0 auto 0 4px;font-size:16px;font-weight:500}
-.bar button{font:500 13px Roboto,Arial,sans-serif;color:var(--text);background:#2a2a2a;border:0;border-radius:18px;padding:7px 12px;cursor:pointer}
-.bar button:hover{background:#3a3a3a}
-.bar button:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
-textarea{flex:1;width:100%;resize:none;border:0;background:transparent;color:var(--text);font:400 16px/1.6 Roboto,Arial,sans-serif;padding:14px 16px}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+h1{margin:12px 0 4px;font-size:20px;line-height:28px;font-weight:700}
+.meta,.muted{color:var(--muted)}
+.panel{position:sticky;top:64px;height:calc(100vh - 80px);min-height:360px;display:flex;flex-direction:column;background:var(--s1);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .tabs{display:flex;padding:0 8px;border-bottom:1px solid var(--line)}
-.tabs button{flex:1;font:500 14px Roboto,Arial,sans-serif;color:var(--muted);background:none;border:0;border-bottom:2px solid transparent;padding:12px 8px;cursor:pointer}
+.tabs button{flex:1;font:500 14px Roboto,Arial,sans-serif;color:var(--muted);background:none;border:0;border-bottom:2px solid transparent;padding:13px 8px;cursor:pointer}
 .tabs button.on{color:var(--text);border-bottom-color:var(--blue)}
-.tabs button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
 .pane{flex:1;min-height:0;display:flex;flex-direction:column}
 .pane[hidden]{display:none}
-.scroll{flex:1;overflow:auto;padding:12px 14px}
-.muted{color:var(--muted)}
-.pbtn{font:500 14px Roboto,Arial,sans-serif;border:0;border-radius:22px;padding:10px 16px;cursor:pointer;color:var(--text);background:#2e2e2e}
-.pbtn:hover{filter:brightness(1.15)}
+.scroll{flex:1;overflow:auto;padding:12px}
+.status{padding:6px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;min-height:28px}
+.chead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.grow{flex:1}
+.pbtn{font:500 14px Roboto,Arial,sans-serif;border:0;border-radius:20px;padding:8px 16px;cursor:pointer;color:var(--text);background:var(--s3)}
 .pbtn.primary{background:var(--blue);color:#06121c}
 .pbtn.ghost{background:transparent;box-shadow:inset 0 0 0 1px #3a3a3a}
 .pbtn.wide{width:100%;padding:13px}
-.pbtn:focus-visible,.aplay:focus-visible,.pchip:focus-visible,.rate button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.chead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
-.crow{background:#171717;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
-.chd{display:flex;align-items:center;gap:8px;font-size:12px}
-.crow .num{width:24px;height:24px;border-radius:50%;background:#262626;display:grid;place-items:center;font-weight:500}
-.crow .grow{flex:1}
-.crow .tg{padding:2px 9px;border-radius:10px;background:#262626;color:var(--muted)}
-.crow textarea{width:100%;min-height:56px;margin-top:8px;padding:8px 10px;resize:vertical;background:#101010;border:1px solid var(--line);border-radius:10px;font:400 15px/1.45 Roboto,Arial,sans-serif;color:var(--text)}
+.card{background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.card.cur{border-color:var(--blue)}
+.chd{display:flex;align-items:center;gap:12px}
+.cnum{font-size:30px;font-weight:700;line-height:1;min-width:38px;letter-spacing:-1px}
+.tg{padding:2px 9px;border-radius:10px;background:var(--s3);color:var(--muted);font-size:12px;white-space:nowrap}
+.tg.due{background:rgba(62,166,255,.18);color:var(--blue)}
+.tg.new{background:rgba(74,222,128,.15);color:var(--good)}
+.acts{display:flex;gap:10px;margin-top:12px}
+.bigbtn{flex:1;height:48px;border:0;border-radius:24px;font:500 16px Roboto,Arial,sans-serif;color:var(--text);background:var(--s3);cursor:pointer}
+.bigbtn:hover{filter:brightness(1.15)}
+.bigbtn.play{background:var(--text);color:#000}
+.bigbtn.live{background:#b3001f;color:#fff}
+.take{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--muted)}
+.chip{border:0;border-radius:14px;padding:5px 11px;font:500 12px Roboto,Arial,sans-serif;background:var(--s3);color:var(--text);cursor:pointer}
+.chip.on{background:var(--blue);color:#06121c}
+.card textarea,.face textarea{width:100%;min-height:60px;margin-top:12px;padding:10px 12px;resize:vertical;background:#101010;border:1px solid var(--line);border-radius:12px;font:400 16px/1.45 Roboto,Arial,sans-serif;color:var(--text)}
+.face{background:var(--s1);padding:2px;margin-bottom:12px}
+.swipe{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;text-align:center;padding:30px 8px 16px;border-radius:16px;background:var(--s2);position:relative;transition:box-shadow .15s}
+.swipe .big{font-size:64px;font-weight:700;line-height:1;letter-spacing:-2px}
+.swipe .hint{color:var(--muted);font-size:12px;margin-top:10px}
+.swipe .lab{position:absolute;top:10px;left:0;right:0;font-weight:500;opacity:0}
+.swipe[data-dir] .lab{opacity:1}
+.swipe[data-dir=again]{box-shadow:inset 0 0 0 2px var(--bad)}.swipe[data-dir=again] .lab{color:var(--bad)}
+.swipe[data-dir=hard]{box-shadow:inset 0 0 0 2px var(--warn)}.swipe[data-dir=hard] .lab{color:var(--warn)}
+.swipe[data-dir=good]{box-shadow:inset 0 0 0 2px var(--good)}.swipe[data-dir=good] .lab{color:var(--good)}
+.swipe[data-dir=easy]{box-shadow:inset 0 0 0 2px var(--blue)}.swipe[data-dir=easy] .lab{color:var(--blue)}
 .prog{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.ptrack{flex:1;height:6px;background:#262626;border-radius:3px;overflow:hidden}
-.ptrack i{display:block;height:100%;width:0;background:var(--blue);transition:width .3s}
-.qcard{background:#171717;border:1px solid var(--line);border-radius:16px;padding:18px 16px;margin-bottom:12px}
-.qtag{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
-.big{font-size:20px;line-height:1.35;font-weight:500;margin:0}
-.small{color:var(--muted);margin:8px 0 0;font-size:15px}
-.mine{margin:0 0 12px;padding:8px 12px;border-radius:10px;background:#212121;color:var(--muted);font-size:14px}
-.qcard textarea.ans{width:100%;min-height:72px;margin-top:14px;padding:10px 12px;resize:vertical;background:#101010;border:1px solid var(--line);border-radius:12px;font:400 16px/1.45 Roboto,Arial,sans-serif;color:var(--text)}
-.audio{display:flex;align-items:center;gap:10px;margin-top:16px;background:#212121;padding:6px 14px 6px 6px;border-radius:30px}
-.aplay{width:38px;height:38px;border-radius:50%;border:0;background:var(--text);color:#000;font-size:14px;cursor:pointer;flex:none}
-.atrack{flex:1;height:6px;background:#333;border-radius:3px;overflow:hidden}
-.atrack i{display:block;height:100%;width:0;background:var(--blue)}
-.pchip{border:0;border-radius:14px;padding:4px 10px;font:500 12px Roboto,Arial,sans-serif;background:#2e2e2e;color:var(--text);cursor:pointer}
-.pchip.on{background:var(--blue);color:#06121c}
-.takes{margin-top:12px;display:grid;gap:6px}
-.take{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.ptrack{flex:1;height:6px;background:var(--s2);border-radius:3px;overflow:hidden}
+.ptrack i,.atrack i{display:block;height:100%;width:0;background:var(--blue)}
+.arow{display:flex;align-items:center;gap:10px;margin-top:12px}
+.atrack{flex:1;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
 .rate{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-.rate button{border:0;border-radius:12px;padding:11px 2px;font:500 14px Roboto,Arial,sans-serif;cursor:pointer;color:var(--text);background:#212121}
-.rate small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
-.rate .again{box-shadow:inset 0 0 0 1px rgba(248,113,113,.55)}
-.rate .hard{box-shadow:inset 0 0 0 1px rgba(251,191,36,.5)}
-.rate .good{box-shadow:inset 0 0 0 1px rgba(74,222,128,.55)}
-.rate .easy{box-shadow:inset 0 0 0 1px rgba(62,166,255,.55)}
-.status{padding:6px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+.rate button{border:0;border-radius:12px;padding:10px 2px;font:500 13px Roboto,Arial,sans-serif;cursor:pointer;color:var(--text);background:var(--s2)}
+.rate small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+.rate .again{box-shadow:inset 0 0 0 1px rgba(248,113,113,.55)}.rate .hard{box-shadow:inset 0 0 0 1px rgba(251,191,36,.5)}
+.rate .good{box-shadow:inset 0 0 0 1px rgba(74,222,128,.55)}.rate .easy{box-shadow:inset 0 0 0 1px rgba(62,166,255,.55)}
+.end{padding:28px 18px;text-align:center}
+.end .big2{font-size:22px;font-weight:500;margin:6px 0}
 @media (max-width:900px){
   .layout{grid-template-columns:1fr;gap:12px;padding:0 0 24px}
-  .stick{position:sticky;top:56px;z-index:5;background:var(--bg);padding-bottom:4px}
-  .ctrl,.chips{padding-left:12px;padding-right:12px}
+  .stick{position:sticky;top:56px;z-index:5;background:var(--bg);padding-bottom:6px}
   .player{border-radius:0}
+  .ctrl{padding:0 12px}
   h1,.meta{padding:0 12px}
-  .notes{position:static;height:60vh;margin:0 12px}
+  .panel{position:static;height:auto;margin:0 12px}
+  .scroll{overflow:visible}
   header{padding:0 12px}
 }
 </style>
 </head>
 <body>
-<header><a class="back" href="./"><span class="logo"></span>FocusTube<small>← back</small></a><nav style="display:flex;gap:8px"><a href="library.html">Library</a><a href="cards.html">Cards</a></nav></header>
+<header><a class="back" href="./"><span class="logo"></span>FocusTube<small>← back</small></a><nav><a href="cards.html">Cards</a></nav></header>
 <div class="layout">
   <section class="left">
     <div class="stick">
       <div class="player"><div id="yt"></div></div>
       <div class="ctrl">
-        <button id="bStart" type="button">⏮ Start</button>
         <button id="bPrev" type="button">◀ Prev</button>
         <button id="bReplay" type="button">↻ Replay</button>
         <button id="bNext" type="button">Next ▶</button>
-        <button id="bRec" type="button">🎙 Record</button>
         <button id="bMark" class="mark" type="button">＋ Mark</button>
       </div>
-      <div class="chips" id="chips"></div>
     </div>
     <h1 id="title"></h1>
     <div class="meta" id="channel"></div>
   </section>
-  <aside class="notes">
-    <div class="tabs" role="tablist"><button type="button" data-tab="notes" class="on">Notes</button><button type="button" data-tab="cards">Cards</button><button type="button" data-tab="study">Study</button></div>
-    <section class="pane" id="pane-notes"><div class="bar">
-      <h2></h2>
-      <button id="stamp" type="button">⏱ Timestamp</button>
-      <button id="copy" type="button">Copy</button>
-      <button id="dl" type="button">Export</button>
-    </div>
-    <textarea id="pad" placeholder="Write your notes here…" spellcheck="true"></textarea>
-    <details class="recwrap" id="recwrap"><summary>Recordings (<span id="recN">0</span>)</summary><div id="recs"></div></details>
-    </section>
-    <section class="pane" id="pane-cards" hidden></section>
+  <aside class="panel">
+    <div class="tabs" role="tablist"><button type="button" data-tab="cards" class="on">Cards</button><button type="button" data-tab="study">Study</button></div>
+    <section class="pane" id="pane-cards"></section>
     <section class="pane" id="pane-study" hidden></section>
-    <div class="status" id="status">Notes are saved on this device.</div>
+    <div class="status" id="status"></div>
   </aside>
 </div>
 <script>
-const p = new URLSearchParams(location.search);
-const id = (p.get('v') || '').match(/^[\w-]{11}$/) ? p.get('v') : null;
-const titleText = p.get('t') || 'Video';
-document.getElementById('title').textContent = titleText;
-document.getElementById('channel').textContent = p.get('c') || '';
-document.title = titleText + ' · FocusTube';
-
-const pad = document.getElementById('pad');
-const status = document.getElementById('status');
-const KEY = 'focus-notes:' + id;
-try { pad.value = localStorage.getItem(KEY) || ''; } catch (e) {}
-let timer;
-function save() {
-  try { localStorage.setItem(KEY, pad.value); if (pad.value.trim() && id) touch(); status.textContent = 'Saved on this device'; }
-  catch (e) { status.textContent = 'Couldn’t save here. Use Copy or Download.'; }
-}
-pad.addEventListener('input', () => { status.textContent = 'Saving…'; clearTimeout(timer); timer = setTimeout(save, 300); });
-
-const LIB = 'focus-lib';
-function loadLib() { try { return JSON.parse(localStorage.getItem(LIB) || '{}'); } catch (e) { return {}; } }
-let marks = ((loadLib()[id] || {}).marks || []).slice();
-let cur = Math.max(0, marks.length - 1);
-function touch() {
-  const l = loadLib();
-  const e = l[id] || { added: Date.now() };
-  e.t = titleText; e.c = p.get('c') || ''; e.marks = marks; e.updated = Date.now();
-  l[id] = e;
-  try { localStorage.setItem(LIB, JSON.stringify(l)); } catch (err) { status.textContent = 'Couldn’t save here. Use Copy or Download.'; }
-}
-
-let player, iv, startedAt = 0;
-if (id) {
-  window.onYouTubeIframeAPIReady = () => {
-    player = new YT.Player('yt', {
-      videoId: id, host: 'https://www.youtube-nocookie.com',
-      width: '100%', height: '100%',
-      playerVars: { autoplay: 1, rel: 0, playsinline: 1 },
-      events: { onStateChange: e => {
-        if (e.data === 0 || (e.data === 2 && Date.now() - startedAt > 600)) { clearInterval(iv); afterEnd = null; }
-      } }
-    });
-  };
-  const s = document.createElement('script');
-  s.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(s);
-} else {
-  document.getElementById('title').textContent = 'No video selected';
-}
-
-function fmt(sec) {
-  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
-  const two = n => String(n).padStart(2, '0');
-  return h ? h + ':' + two(m) + ':' + two(s) : m + ':' + two(s);
-}
-function renderMarks() {
-  const box = document.getElementById('chips');
-  box.replaceChildren();
-  if (!marks.length) { const h = document.createElement('div'); h.className = 'hint'; h.textContent = 'Pause at the end of a phrase and press Mark.'; box.append(h); return; }
-  marks.forEach((m, i) => {
-    const c = document.createElement('div'); c.className = 'chip' + (i === cur ? ' on' : '');
-    const go = document.createElement('button'); go.type = 'button'; go.textContent = (i + 1) + ' · ' + fmt(Math.floor(m));
-    go.onclick = () => playPhrase(i);
-    const x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.textContent = '×'; x.setAttribute('aria-label', 'Delete mark ' + (i + 1));
-    x.onclick = () => { marks.splice(i, 1); cur = Math.max(0, Math.min(cur, marks.length - 1)); touch(); renderMarks(); };
-    c.append(go, x); box.append(c);
-  });
-}
-function ready() { return player && player.getCurrentTime; }
-function addMark() {
-  if (!ready()) return;
-  const t = Math.round(player.getCurrentTime() * 10) / 10;
-  if (t < 0.5 || marks.some(m => Math.abs(m - t) < 0.6)) return;
-  marks.push(t); marks.sort((a, b) => a - b); cur = marks.indexOf(t);
-  touch(); renderMarks();
-}
-let afterEnd = null;
-function playPhrase(i, then) {
-  if (!ready()) return;
-  clearInterval(iv); afterEnd = then || null;
-  if (!marks.length) { player.seekTo(Math.max(0, player.getCurrentTime() - 5), true); player.playVideo(); return; }
-  cur = Math.max(0, Math.min(marks.length - 1, i));
-  const s = cur ? marks[cur - 1] : 0, e = marks[cur];
-  player.seekTo(s, true); player.playVideo(); startedAt = Date.now();
-  iv = setInterval(() => {
-    if (Date.now() - startedAt > 400 && player.getCurrentTime() >= e - 0.05) { player.pauseVideo(); clearInterval(iv); const f = afterEnd; afterEnd = null; if (f) f(); }
-  }, 80);
-  renderMarks();
-}
-function togglePlay() { if (ready()) (player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo()); }
-document.getElementById('bMark').onclick = addMark;
-document.getElementById('bReplay').onclick = () => playPhrase(cur);
-document.getElementById('bPrev').onclick = () => playPhrase(cur - 1);
-document.getElementById('bNext').onclick = () => playPhrase(cur + 1);
-document.getElementById('bStart').onclick = () => {
-  clearInterval(iv);
-  if (marks.length) playPhrase(0); else if (ready()) { player.seekTo(0, true); player.playVideo(); }
-};
-document.addEventListener('keydown', e => {
-  if (/^(TEXTAREA|INPUT)$/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
-  const k = e.key;
-  if (tab === 'study' && studyGrade && k >= '1' && k <= '4') { studyGrade(['again', 'hard', 'good', 'easy'][+k - 1]); e.preventDefault(); return; }
-  if (k === 'ArrowLeft') playPhrase(e.shiftKey ? cur - 1 : cur);
-  else if (k === 'ArrowRight') playPhrase(cur + 1);
-  else if (k === 'm' || k === 'M') addMark();
-  else if (k === 'r' || k === 'R') toggleRec();
-  else if (k === ' ') togglePlay();
-  else return;
-  e.preventDefault();
-});
-renderMarks();
-
-document.getElementById('stamp').onclick = () => {
-  if (!player || !player.getCurrentTime) return;
-  const tag = '[' + fmt(Math.floor(player.getCurrentTime())) + '] ';
-  const a = pad.selectionStart, b = pad.selectionEnd;
-  const before = pad.value.slice(0, a);
-  const lead = before && !before.endsWith('\n') ? '\n' : '';
-  pad.value = before + lead + tag + pad.value.slice(b);
-  const pos = (before + lead + tag).length;
-  pad.focus(); pad.setSelectionRange(pos, pos);
-  save();
-};
-document.getElementById('copy').onclick = async () => {
-  try { await navigator.clipboard.writeText(pad.value); status.textContent = 'Copied'; }
-  catch (e) { pad.select(); status.textContent = 'Press copy on your keyboard'; }
-};
-const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
-
-// Auto timestamp on every new line
-function nowTag() { return ready() ? '[' + fmt(Math.floor(player.getCurrentTime())) + '] ' : ''; }
-function insertAtCursor(txt) {
-  const a = pad.selectionStart, b = pad.selectionEnd;
-  pad.value = pad.value.slice(0, a) + txt + pad.value.slice(b);
-  pad.setSelectionRange(a + txt.length, a + txt.length);
-  save();
-}
-pad.addEventListener('beforeinput', e => {
-  if (e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak') { e.preventDefault(); insertAtCursor('\n' + nowTag()); }
-});
-pad.addEventListener('focus', () => { if (!pad.value) insertAtCursor(nowTag()); });
-
-// Recordings storage (IndexedDB)
-const dbp = new Promise((res, rej) => {
-  try {
-    const r = indexedDB.open('focustube', 1);
-    r.onupgradeneeded = () => { r.result.createObjectStore('recs', { keyPath: 'id', autoIncrement: true }).createIndex('vid', 'vid'); };
-    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
-  } catch (e) { rej(e); }
-});
-async function tx(mode, fn) {
-  const d = await dbp;
-  return new Promise((res, rej) => {
-    const t = d.transaction('recs', mode); const q = fn(t.objectStore('recs'));
-    t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error);
-  });
-}
-let recs = [], curAudio = null;
-function phraseOf(at) { const i = marks.findIndex(m => m >= at - 0.3); return i < 0 ? marks.length : i; }
-async function loadRecs() {
-  try { recs = (await tx('readonly', s => s.index('vid').getAll(id))) || []; } catch (e) { recs = []; }
-  renderRecs();
-}
-function playRec(r) {
-  if (curAudio) curAudio.pause();
-  if (ready()) player.pauseVideo();
-  const u = URL.createObjectURL(r.blob);
-  curAudio = new Audio(u);
-  curAudio.onended = () => URL.revokeObjectURL(u);
-  curAudio.play();
-}
-function renderRecs() {
-  const box = document.getElementById('recs'); box.replaceChildren();
-  document.getElementById('recN').textContent = recs.length;
-  [...recs].sort((a, b) => a.at - b.at || a.ts - b.ts).forEach(r => {
-    const i = phraseOf(r.at), row = mk('div', 'rec');
-    row.append(mk('div', 'lbl', (i < marks.length ? 'Phrase ' + (i + 1) : 'After last mark') + ' · ' + fmt(Math.floor(r.at)) + ' · ' + r.dur + 's'));
-    const play = mk('button', '', '▶ Mine'); play.type = 'button'; play.onclick = () => playRec(r);
-    row.append(play);
-    if (i < marks.length) {
-      const cmp = mk('button', '', 'Original → Mine'); cmp.type = 'button'; cmp.onclick = () => playPhrase(i, () => playRec(r));
-      row.append(cmp);
-    }
-    const del = mk('button', '', '×'); del.type = 'button'; del.setAttribute('aria-label', 'Delete recording');
-    del.onclick = async () => { try { await tx('readwrite', s => s.delete(r.id)); } catch (e) {} loadRecs(); };
-    row.append(del); box.append(row);
-  });
-}
-
-// Recorder
-let mr, chunks = [], stream, t0 = 0, tick, recAt = 0;
-async function toggleRec(forceAt, btnEl, after) {
-  const b = btnEl || document.getElementById('bRec');
-  if (mr && mr.state === 'recording') { mr.stop(); return; }
-  if (!navigator.mediaDevices || !window.MediaRecorder) { status.textContent = 'Recording isn’t supported in this browser.'; return; }
-  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-  catch (e) { status.textContent = 'Microphone blocked. Allow it in the browser settings.'; return; }
-  clearInterval(iv); afterEnd = null; if (curAudio) curAudio.pause();
-  if (ready()) player.pauseVideo();
-  recAt = forceAt != null ? forceAt : (ready() ? Math.round(player.getCurrentTime() * 10) / 10 : 0);
-  const type = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => MediaRecorder.isTypeSupported(t)) || '';
-  mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
-  chunks = [];
-  mr.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-  mr.onstop = async () => {
-    clearInterval(tick); stream.getTracks().forEach(t => t.stop());
-    b.textContent = '🎙 Record'; b.classList.remove('rec-on');
-    const blob = new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' });
-    const dur = Math.max(1, Math.round((Date.now() - t0) / 1000));
-    try {
-      await tx('readwrite', s => s.add({ vid: id, at: recAt, ts: Date.now(), dur, blob }));
-      touch(); document.getElementById('recwrap').open = true;
-      try { navigator.storage.persist(); } catch (e) {}
-    } catch (e) { status.textContent = 'Couldn’t save the recording on this device.'; }
-    await loadRecs(); if (after) after();
-  };
-  mr.start(); t0 = Date.now(); b.classList.add('rec-on'); b.textContent = '■ Stop 0s';
-  tick = setInterval(() => { b.textContent = '■ Stop ' + Math.round((Date.now() - t0) / 1000) + 's'; }, 500);
-}
-document.getElementById('bRec').onclick = toggleRec;
-
-// Export: folder on PC, share sheet on phone, separate files as a last resort
-const safe = s => s.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'notes';
-const ext = r => (r.blob.type || '').includes('mp4') ? 'm4a' : 'webm';
-function notesText() {
-  return titleText + '\n\n' + pad.value + (marks.length ? '\n\nMarks (phrase ends):\n' + marks.map((m, i) => (i + 1) + '. ' + fmt(Math.floor(m))).join('\n') : '');
-}
-function exportFiles(inFolder) {
-  const base = safe(titleText), counts = {};
-  const files = [{ name: inFolder ? 'notes.txt' : base + ' - notes.txt', blob: new Blob([notesText()], { type: 'text/plain' }) }];
-  [...recs].sort((a, b) => a.at - b.at || a.ts - b.ts).forEach(r => {
-    const i = phraseOf(r.at), k = i < marks.length ? 'phrase ' + String(i + 1).padStart(2, '0') : 'after last mark';
-    counts[k] = (counts[k] || 0) + 1;
-    const n = k + ' - take ' + counts[k] + '.' + ext(r);
-    files.push({ name: inFolder ? n : base + ' - ' + n, blob: r.blob });
-  });
-  return files;
-}
-document.getElementById('dl').onclick = async () => {
-  try {
-    if (window.showDirectoryPicker) {
-      const root = await showDirectoryPicker({ mode: 'readwrite' });
-      const dir = await root.getDirectoryHandle(safe(titleText), { create: true });
-      for (const f of exportFiles(true)) {
-        const w = await (await dir.getFileHandle(f.name, { create: true })).createWritable();
-        await w.write(f.blob); await w.close();
-      }
-      status.textContent = 'Exported to the folder “' + safe(titleText) + '”'; return;
-    }
-    const files = exportFiles(false).map(f => new File([f.blob], f.name, { type: f.blob.type }));
-    if (navigator.canShare && navigator.canShare({ files })) { await navigator.share({ files, title: titleText }); status.textContent = 'Shared'; return; }
-    for (const f of files) {
-      const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; a.click();
-      await new Promise(r => setTimeout(r, 400)); URL.revokeObjectURL(a.href);
-    }
-    status.textContent = 'Downloaded ' + files.length + ' files';
-  } catch (e) { if (e.name !== 'AbortError') status.textContent = 'Export failed. Try Copy for the text.'; }
-};
-
-// ===== Cards and Study tabs =====
+// PURE-START
 const NEW_PER_DAY = 10;
 function nextState(c, r) {
   const n = { ease: c.ease || 2.5, ivl: c.ivl || 0, reps: c.reps || 0, lapses: c.lapses || 0 };
@@ -418,6 +135,13 @@ function fmtIvl(ms) {
   if (d < 365) return Math.round(d / 30) + 'mo';
   return (d / 365).toFixed(1) + 'y';
 }
+function dirOf(dx, dy) {
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  if (Math.max(ax, ay) < 70) return null;
+  if (ax >= ay * 1.3) return dx > 0 ? 'good' : 'again';
+  if (ay >= ax * 1.3) return dy < 0 ? 'easy' : 'hard';
+  return null;
+}
 function noteLines(text) {
   const out = [];
   for (const ln of text.split('\n')) {
@@ -427,138 +151,301 @@ function noteLines(text) {
   return out;
 }
 const phraseText = (lines, a, b) => lines.filter(l => l.t >= Math.ceil(a) && l.t <= b + 0.5 && l.txt).map(l => l.txt).join(' ');
+// PURE-END
+
+const $ = n => document.getElementById(n);
 const LS = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
+const status = $('status');
 const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { status.textContent = 'Couldn’t save on this device.'; } };
 const h = (t, c, ...k) => { const e = document.createElement(t); if (c) e.className = c; for (const x of k.flat()) if (x != null && x !== false) e.append(x.nodeType ? x : document.createTextNode(x)); return e; };
-const pb = (t, c, f) => { const b = h('button', 'pbtn ' + (c || ''), t); b.type = 'button'; b.onclick = f; return b; };
-const done = c => !!(c.tgt.trim() && c.nat.trim());
+const btn = (t, cls, f) => { const b = h('button', cls, t); b.type = 'button'; b.onclick = f; return b; };
+function fmt(sec) {
+  const hr = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = Math.floor(sec % 60), two = n => String(n).padStart(2, '0');
+  return hr ? hr + ':' + two(m) + ':' + two(s) : m + ':' + two(s);
+}
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 const today = () => new Date().toISOString().slice(0, 10);
+
+const p = new URLSearchParams(location.search);
+const id = (p.get('v') || '').match(/^[\w-]{11}$/) ? p.get('v') : null;
+const titleText = p.get('t') || 'Video', chan = p.get('c') || '';
+$('title').textContent = id ? titleText : 'No video selected';
+$('channel').textContent = chan;
+document.title = titleText + ' · FocusTube';
+
+// ---- data
+let all = LS('focus-cards', []);
+(function migrate() {
+  let ch = false;
+  all.forEach(c => { if (c.note === undefined) { c.note = [c.tgt, c.nat].filter(Boolean).join('\n'); delete c.tgt; delete c.nat; ch = true; } });
+  const L = LS('focus-lib', {}), e = id && L[id];
+  if (e && (e.marks || []).length) {
+    let notes = ''; try { notes = localStorage.getItem('focus-notes:' + id) || ''; } catch (x) {}
+    const lines = noteLines(notes), ms = e.marks.slice().sort((a, b) => a - b);
+    ms.forEach((m, i) => {
+      const s0 = i ? ms[i - 1] : 0;
+      if (all.some(c => c.vid === id && Math.abs(c.e - m) < 0.6)) return;
+      all.push({ id: uid(), vid: id, s: s0, e: m, note: phraseText(lines, s0, m), ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0, seen: 0, created: Date.now() });
+    });
+    e.marks = []; put('focus-lib', L); ch = true;
+  }
+  if (ch) put('focus-cards', all);
+})();
+const save = () => put('focus-cards', all);
+const mine = () => all.filter(c => c.vid === id).sort((a, b) => a.s - b.s);
+function touch() {
+  const L = LS('focus-lib', {}), e = L[id] || { added: Date.now() };
+  e.t = titleText; e.c = chan; e.marks = []; e.updated = Date.now(); L[id] = e; put('focus-lib', L);
+}
 const introduced = () => { const d = LS('focus-newday', {}); return d.d === today() ? ((d.n || {})[id] || 0) : 0; };
 function bumpIntro() { let d = LS('focus-newday', {}); if (d.d !== today()) d = { d: today(), n: {} }; d.n[id] = (d.n[id] || 0) + 1; put('focus-newday', d); }
-const $ = n => document.getElementById(n);
-
-let cardsAll = [], tab = 'notes', studyGrade = null, sq = [], sDone = 0;
-const myCards = () => cardsAll.filter(c => c.vid === id).sort((a, b) => a.s - b.s);
-const saveCards = () => put('focus-cards', cardsAll);
-function statusText(c) {
-  if (!done(c)) return 'Draft';
-  if (!c.seen) return 'New';
-  return c.due <= Date.now() ? 'Due' : 'In ' + fmtIvl(c.due - Date.now());
+function tagOf(c) {
+  if (!c.seen) return ['New', 'new'];
+  return c.due <= Date.now() ? ['Due', 'due'] : ['In ' + fmtIvl(c.due - Date.now()), ''];
 }
-function syncCards() {
-  cardsAll = LS('focus-cards', []);
-  const lines = noteLines(pad.value), ms = marks.slice().sort((a, b) => a - b); let changed = false;
-  ms.forEach((m, i) => {
-    const s0 = i ? ms[i - 1] : 0;
-    if (cardsAll.some(c => c.vid === id && Math.abs(c.e - m) < 0.6)) return;
-    cardsAll.push({ id: uid(), vid: id, s: s0, e: m, tgt: phraseText(lines, s0, m), nat: '', ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0, seen: 0, created: Date.now() }); changed = true;
+
+// ---- recordings (IndexedDB)
+const dbp = new Promise((res, rej) => {
+  try {
+    const r = indexedDB.open('focustube', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('recs', { keyPath: 'id', autoIncrement: true }).createIndex('vid', 'vid'); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  } catch (e) { rej(e); }
+});
+async function tx(mode, fn) {
+  const d = await dbp;
+  return new Promise((res, rej) => {
+    const t = d.transaction('recs', mode); const q = fn(t.objectStore('recs'));
+    t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error);
   });
-  myCards().forEach(c => { if (!c.tgt) { const t = phraseText(lines, c.s, c.e); if (t) { c.tgt = t; changed = true; } } });
-  if (changed) { saveCards(); touch(); }
+}
+let recs = [], curAudio = null;
+async function loadRecs() { try { recs = (await tx('readonly', s => s.index('vid').getAll(id))) || []; } catch (e) { recs = []; } }
+const takesOf = c => recs.filter(r => r.at > c.s && r.at <= c.e + 0.5).sort((a, b) => b.ts - a.ts);
+function playRec(r) {
+  if (curAudio) curAudio.pause();
+  if (ready()) player.pauseVideo();
+  const u = URL.createObjectURL(r.blob); curAudio = new Audio(u);
+  curAudio.onended = () => URL.revokeObjectURL(u); curAudio.play();
+}
+let mr, chunks = [], stream, t0 = 0, tick;
+async function toggleRec(at, b, after) {
+  if (mr && mr.state === 'recording') { mr.stop(); return; }
+  if (!navigator.mediaDevices || !window.MediaRecorder) { status.textContent = 'Recording isn’t supported in this browser.'; return; }
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) { status.textContent = 'Microphone blocked. Allow it in the browser settings.'; return; }
+  clearInterval(iv); if (curAudio) curAudio.pause(); if (ready()) player.pauseVideo();
+  const type = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+  mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined); chunks = [];
+  mr.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  mr.onstop = async () => {
+    clearInterval(tick); stream.getTracks().forEach(t => t.stop()); b.classList.remove('live'); b.textContent = '🎙 Record';
+    const blob = new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' });
+    const dur = Math.max(1, Math.round((Date.now() - t0) / 1000));
+    try { await tx('readwrite', s => s.add({ vid: id, at, ts: Date.now(), dur, blob })); touch(); try { navigator.storage.persist(); } catch (e) {} }
+    catch (e) { status.textContent = 'Couldn’t save the recording on this device.'; }
+    await loadRecs(); if (after) after();
+  };
+  mr.start(); t0 = Date.now(); b.classList.add('live'); b.textContent = '■ Stop 0s';
+  tick = setInterval(() => { b.textContent = '■ Stop ' + Math.round((Date.now() - t0) / 1000) + 's'; }, 500);
+}
+
+// ---- player
+let player, iv, startedAt = 0, cur = 0;
+const ready = () => player && player.getCurrentTime;
+if (id) {
+  window.onYouTubeIframeAPIReady = () => {
+    player = new YT.Player('yt', {
+      videoId: id, host: 'https://www.youtube-nocookie.com', width: '100%', height: '100%',
+      playerVars: { autoplay: location.hash === '#study' ? 0 : 1, rel: 0, playsinline: 1 },
+      events: { onReady: () => { if (tab === 'study' && sq[0]) player.cueVideoById({ videoId: id, startSeconds: sq[0].s }); },
+        onStateChange: e => { if (e.data === 0 || (e.data === 2 && Date.now() - startedAt > 600)) clearInterval(iv); } }
+    });
+  };
+  const sc = document.createElement('script'); sc.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(sc);
 }
 function playRange(a, b, after, bar) {
   if (!ready()) return;
-  clearInterval(iv); afterEnd = null; player.seekTo(a, true); player.playVideo(); startedAt = Date.now();
+  clearInterval(iv); player.seekTo(a, true); player.playVideo(); startedAt = Date.now();
   iv = setInterval(() => {
     const t = player.getCurrentTime();
     if (bar) bar.style.width = Math.max(0, Math.min(1, (t - a) / (b - a))) * 100 + '%';
     if (Date.now() - startedAt > 400 && t >= b - 0.05) { player.pauseVideo(); clearInterval(iv); if (bar) bar.style.width = '100%'; if (after) after(); }
   }, 60);
 }
+function go(i) {
+  const l = mine();
+  if (!l.length) { if (ready()) { player.seekTo(Math.max(0, player.getCurrentTime() - 5), true); player.playVideo(); } return; }
+  cur = Math.max(0, Math.min(l.length - 1, i));
+  playRange(l[cur].s, l[cur].e); highlight();
+}
+function addMark() {
+  if (!ready() || !id) return;
+  const t = Math.round(player.getCurrentTime() * 10) / 10, l = mine();
+  if (t < 0.5 || l.some(c => Math.abs(c.e - t) < 0.6)) return;
+  const host = l.find(c => c.s < t - 0.3 && t < c.e - 0.3);
+  let s0;
+  if (host) { s0 = host.s; host.s = t; }
+  else { const prev = l.filter(c => c.e <= t).sort((a, b) => b.e - a.e)[0]; s0 = prev ? prev.e : 0; }
+  const nc = { id: uid(), vid: id, s: s0, e: t, note: '', ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0, seen: 0, created: Date.now() };
+  all.push(nc); save(); touch(); cur = mine().indexOf(nc);
+  if (tab === 'cards') renderList();
+  status.textContent = 'Card ' + (cur + 1) + ' added';
+}
+function togglePlay() { if (ready()) (player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo()); }
+$('bMark').onclick = addMark;
+$('bReplay').onclick = () => go(cur);
+$('bPrev').onclick = () => go(cur - 1);
+$('bNext').onclick = () => go(cur + 1);
+document.addEventListener('keydown', e => {
+  if (/^(TEXTAREA|INPUT)$/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key;
+  if (tab === 'study' && studyGrade && k >= '1' && k <= '4') { studyGrade(['again', 'hard', 'good', 'easy'][+k - 1]); e.preventDefault(); return; }
+  if (k === 'ArrowLeft') go(e.shiftKey ? cur - 1 : cur);
+  else if (k === 'ArrowRight') go(cur + 1);
+  else if (k === 'm' || k === 'M') addMark();
+  else if (k === ' ') togglePlay();
+  else return;
+  e.preventDefault();
+});
 
-function renderCards() {
-  const pane = $('pane-cards'); syncCards();
-  const list = myCards(), box = h('div', 'scroll');
-  box.append(h('div', 'chead', h('span', 'muted', list.length + ' cards · ' + list.filter(done).length + ' complete'),
-    list.length ? pb('Study', 'primary', () => setTab('study')) : null));
-  if (!list.length) box.append(h('div', 'muted', 'Mark phrases under the video and each one becomes a card here. Text from your notes is filled in for you.'));
-  list.forEach((c, i) => {
-    const tg = h('span', 'tg', statusText(c));
-    const t1 = h('textarea'); t1.placeholder = 'In the video’s language'; t1.value = c.tgt;
-    const t2 = h('textarea'); t2.placeholder = 'In your language'; t2.value = c.nat;
-    t1.oninput = () => { c.tgt = t1.value; saveCards(); tg.textContent = statusText(c); };
-    t2.oninput = () => { c.nat = t2.value; saveCards(); tg.textContent = statusText(c); };
-    const play = h('button', 'pchip', '▶'); play.type = 'button'; play.setAttribute('aria-label', 'Play phrase ' + (i + 1)); play.onclick = () => playRange(c.s, c.e);
-    const del = h('button', 'pchip', 'Delete'); del.type = 'button';
-    del.onclick = () => { if (confirm('Delete this card?')) { cardsAll = cardsAll.filter(x => x.id !== c.id); saveCards(); renderCards(); } };
-    box.append(h('div', 'crow', h('div', 'chd', h('span', 'num', String(i + 1)), h('span', 'muted', fmt(Math.floor(c.s)) + ' – ' + fmt(Math.floor(c.e))), tg, h('span', 'grow'), play, del), t1, t2));
+// ---- cards list
+let tab = 'cards', rows = [], sq = [], sDone = 0, studyGrade = null;
+function highlight() {
+  rows.forEach((r, i) => r.classList.toggle('cur', i === cur));
+  if (rows[cur] && rows[cur].scrollIntoView) rows[cur].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function renderList() {
+  const l = mine(), box = h('div', 'scroll'); rows = [];
+  if (cur > l.length - 1) cur = Math.max(0, l.length - 1);
+  box.append(h('div', 'chead', h('span', 'muted', l.length + (l.length === 1 ? ' card' : ' cards')), h('span', 'grow'),
+    l.length ? btn('Export', 'pbtn ghost', exportAll) : null, l.length ? btn('Study', 'pbtn primary', () => setTab('study')) : null));
+  if (!l.length) box.append(h('div', 'muted', 'Pause at the end of a phrase and press Mark. Each mark creates a card here.'));
+  l.forEach((c, i) => {
+    const [tl, tc] = tagOf(c);
+    const ta = h('textarea'); ta.placeholder = 'Write or dictate here…'; ta.value = c.note || ''; ta.oninput = () => { c.note = ta.value; save(); };
+    const play = btn('▶ Play', 'bigbtn play', () => go(i));
+    const rec = btn('🎙 Record', 'bigbtn', () => toggleRec(c.e - 0.01, rec, renderList));
+    const del = btn('×', 'chip', () => { if (confirm('Delete card ' + (i + 1) + '?')) { all = all.filter(x => x.id !== c.id); save(); renderList(); } });
+    del.setAttribute('aria-label', 'Delete card ' + (i + 1));
+    const t = takesOf(c)[0];
+    const take = t ? h('div', 'take', btn('▶ Your take · ' + t.dur + 's', 'chip', () => playRec(t)),
+      btn('×', 'chip', async () => { try { await tx('readwrite', s => s.delete(t.id)); } catch (e) {} await loadRecs(); renderList(); })) : null;
+    const row = h('div', 'card' + (i === cur ? ' cur' : ''),
+      h('div', 'chd', h('span', 'cnum', String(i + 1)), h('div', 'grow', h('div', 'muted', fmt(c.s) + ' – ' + fmt(c.e))), h('span', 'tg ' + tc, tl), del),
+      h('div', 'acts', play, rec), take, ta);
+    rows.push(row); box.append(row);
   });
-  pane.replaceChildren(box);
+  $('pane-cards').replaceChildren(box);
 }
 
+// ---- study
 function renderStudy() {
-  syncCards();
-  const now = Date.now(), mine = myCards().filter(done);
-  const due = mine.filter(c => c.seen && c.due <= now).sort((a, b) => a.due - b.due);
-  const fresh = mine.filter(c => !c.seen).sort((a, b) => a.created - b.created || a.s - b.s).slice(0, Math.max(0, NEW_PER_DAY - introduced()));
-  sq = [...due, ...fresh]; sDone = 0; studyFront();
+  const now = Date.now(), l = mine();
+  const due = l.filter(c => c.seen && c.due <= now).sort((a, b) => a.due - b.due);
+  const fresh = l.filter(c => !c.seen).slice(0, Math.max(0, NEW_PER_DAY - introduced()));
+  sq = [...due, ...fresh]; sDone = 0; studyFace();
 }
-function studyFront() {
-  const pane = $('pane-study'), box = h('div', 'scroll'); studyGrade = null; clearInterval(iv);
-  pane.replaceChildren(box);
+function studyFace() {
+  const box = h('div', 'scroll'); studyGrade = null; clearInterval(iv);
+  $('pane-study').replaceChildren(box);
   const c = sq[0];
   if (!c) {
-    const nxt = myCards().filter(x => done(x) && x.seen).sort((a, b) => a.due - b.due)[0];
-    box.append(h('div', 'qcard', h('div', 'qtag', sDone ? 'Session complete' : 'Nothing to study'),
-      h('p', 'big', sDone ? sDone + ' cards reviewed' : 'Complete cards in the Cards tab (both texts) to study them.'),
-      h('p', 'small', nxt ? 'Next review in ' + fmtIvl(Math.max(0, nxt.due - Date.now())) + '.' : '')));
+    const nxt = mine().filter(x => x.seen).sort((a, b) => a.due - b.due)[0];
+    box.append(h('div', 'end', h('div', 'muted', sDone ? 'Session complete' : 'Nothing to study'),
+      h('div', 'big2', sDone ? sDone + ' cards reviewed' : (mine().length ? 'You’re all caught up' : 'Mark phrases to create cards')),
+      h('div', 'muted', nxt ? 'Next review in ' + fmtIvl(Math.max(0, nxt.due - Date.now())) + '.' : '')));
     return;
   }
   if (ready()) player.cueVideoById({ videoId: id, startSeconds: c.s });
-  const fill = h('i'); fill.style.width = (sDone / (sDone + sq.length)) * 100 + '%';
-  const ans = h('textarea', 'ans'); ans.placeholder = 'Type what you remember (optional)';
-  box.append(h('div', 'prog', h('div', 'ptrack', fill), h('span', 'muted', sq.length + ' left')),
-    h('div', 'qcard', h('div', 'qtag', 'Say it in the video’s language'), h('p', 'big', c.nat), ans),
-    pb('Show answer', 'primary wide', () => studyBack(c, ans.value.trim())));
-}
-function studyBack(c, typed) {
-  const pane = $('pane-study'), box = h('div', 'scroll'); pane.replaceChildren(box);
-  const bar = h('i'), play = h('button', 'aplay', '▶'); play.type = 'button'; play.setAttribute('aria-label', 'Play original');
-  const go = () => playRange(c.s, c.e, null, bar); play.onclick = go;
-  const slow = h('button', 'pchip', '0.75×'); slow.type = 'button'; let isSlow = false;
-  slow.onclick = () => { isSlow = !isSlow; slow.classList.toggle('on', isSlow); if (ready()) player.setPlaybackRate(isSlow ? 0.75 : 1); };
-  const takes = h('div', 'takes'), rec = pb('🎙 Record', 'wide ghost', () => toggleRec(c.e - 0.01, rec, showTakes));
-  function showTakes() {
-    const t = recs.filter(r => r.at > c.s && r.at <= c.e + 0.5).sort((a, b) => b.ts - a.ts);
-    takes.replaceChildren();
-    t.slice(0, 3).forEach((r, i) => {
-      const p1 = h('button', 'pchip', '▶'); p1.type = 'button'; p1.onclick = () => playRec(r);
-      const cmp = h('button', 'pchip', 'Original → Mine'); cmp.type = 'button'; cmp.onclick = () => playRange(c.s, c.e, () => playRec(r), bar);
-      const x = h('button', 'pchip', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Delete take');
-      x.onclick = async () => { try { await tx('readwrite', s2 => s2.delete(r.id)); } catch (e) {} await loadRecs(); showTakes(); };
-      takes.append(h('div', 'take', p1, (i ? 'Take · ' : 'Latest take · ') + r.dur + 's', cmp, x));
-    });
-    rec.textContent = t.length ? '🎙 Record again' : '🎙 Record';
+  const num = mine().indexOf(c) + 1, bar = h('i'), fill = h('i');
+  fill.style.width = (sDone / (sDone + sq.length)) * 100 + '%';
+  const lab = h('div', 'lab'), sw = h('div', 'swipe', lab, h('div', 'big', String(num)), h('div', 'hint', '→ Good · ← Again · ↑ Easy · ↓ Hard'));
+  attachSwipe(sw, lab, c);
+  const play = btn('▶ Play', 'bigbtn play', () => playRange(c.s, c.e, null, bar));
+  const rec = btn('🎙 Record', 'bigbtn', () => toggleRec(c.e - 0.01, rec, showTake));
+  const take = h('div');
+  function showTake() {
+    take.replaceChildren(); const t = takesOf(c)[0]; if (!t) return;
+    take.append(h('div', 'take', btn('▶ Your take · ' + t.dur + 's', 'chip', () => playRec(t)),
+      btn('Original → Mine', 'chip', () => playRange(c.s, c.e, () => playRec(t), bar)),
+      btn('×', 'chip', async () => { try { await tx('readwrite', s => s.delete(t.id)); } catch (e) {} await loadRecs(); showTake(); })));
+    rec.textContent = '🎙 Record again';
   }
+  let slowOn = false; const slow = btn('0.75×', 'chip', () => { slowOn = !slowOn; slow.classList.toggle('on', slowOn); if (ready()) player.setPlaybackRate(slowOn ? 0.75 : 1); });
+  const ta = h('textarea'); ta.placeholder = 'Write or dictate here…'; ta.value = c.note || ''; ta.oninput = () => { c.note = ta.value; save(); };
   const rate = h('div', 'rate');
   [['again', 'Again'], ['hard', 'Hard'], ['good', 'Good'], ['easy', 'Easy']].forEach(([k, label]) => {
-    const b = h('button', k, h('span', '', label), h('small', '', fmtIvl(nextState(c, k).due - Date.now()))); b.type = 'button';
-    b.onclick = () => gradeCard(c, k); rate.append(b);
+    rate.append(btn([h('span', '', label), h('small', '', fmtIvl(nextState(c, k).due - Date.now()))], k, () => gradeCard(c, k)));
   });
   studyGrade = r => gradeCard(c, r);
-  box.append(h('div', 'qcard', h('div', 'qtag', 'In the video’s language'), typed ? h('div', 'mine', 'Your answer: ' + typed) : null,
-    h('p', 'big', c.tgt), h('p', 'small', c.nat),
-    h('div', 'audio', play, h('div', 'atrack', bar), h('span', 'muted', Math.round((c.e - c.s) * 10) / 10 + 's'), slow), takes), rec, rate);
-  showTakes(); go();
+  box.append(h('div', 'prog', h('div', 'ptrack', fill), h('span', 'muted', sq.length + ' left')),
+    h('div', 'face', sw, h('div', 'acts', play, rec), h('div', 'arow', h('div', 'atrack', bar), slow), take, ta), rate);
+  showTake();
+}
+function attachSwipe(el, lab, c) {
+  let x0 = 0, y0 = 0, dx = 0, dy = 0, on = false;
+  const reset = () => { on = false; dx = dy = 0; el.style.transform = ''; delete el.dataset.dir; };
+  el.addEventListener('pointerdown', e => { on = true; x0 = e.clientX; y0 = e.clientY; try { el.setPointerCapture(e.pointerId); } catch (x) {} });
+  el.addEventListener('pointermove', e => {
+    if (!on) return; dx = e.clientX - x0; dy = e.clientY - y0;
+    el.style.transform = 'translate(' + dx * 0.4 + 'px,' + dy * 0.4 + 'px)';
+    const r = dirOf(dx, dy);
+    if (r) { el.dataset.dir = r; lab.textContent = r[0].toUpperCase() + r.slice(1) + ' · ' + fmtIvl(nextState(c, r).due - Date.now()); } else delete el.dataset.dir;
+  });
+  el.addEventListener('pointerup', () => { const r = on ? dirOf(dx, dy) : null; reset(); if (r) gradeCard(c, r); });
+  el.addEventListener('pointercancel', reset);
 }
 function gradeCard(c, r) {
   if (mr && mr.state === 'recording') return;
   clearInterval(iv); if (ready()) player.pauseVideo(); if (curAudio) curAudio.pause();
   if (!c.seen) bumpIntro();
-  Object.assign(c, nextState(c, r), { seen: Date.now() }); saveCards();
+  Object.assign(c, nextState(c, r), { seen: Date.now() }); save();
   sq.shift(); if (r === 'again') sq.splice(Math.min(3, sq.length), 0, c); else sDone++;
-  studyFront();
+  studyFace();
 }
 function setTab(t) {
   tab = t; studyGrade = null; clearInterval(iv);
   document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
-  ['notes', 'cards', 'study'].forEach(n => { $('pane-' + n).hidden = n !== t; });
-  if (t === 'cards') renderCards(); else if (t === 'study') renderStudy();
+  $('pane-cards').hidden = t !== 'cards'; $('pane-study').hidden = t !== 'study';
+  if (t === 'cards') renderList(); else renderStudy();
 }
 document.querySelectorAll('.tabs button').forEach(b => { b.onclick = () => setTab(b.dataset.tab); });
-if (location.hash === '#cards' || location.hash === '#study') setTab(location.hash.slice(1));
-if (id) loadRecs();
+
+// ---- export: folder on PC, share sheet on phone, separate files otherwise
+const safe = s => s.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'cards';
+const ext = r => (r.blob.type || '').includes('mp4') ? 'm4a' : 'webm';
+function exportFiles(inFolder) {
+  const base = safe(titleText), l = mine();
+  const text = titleText + '\n\n' + l.map((c, i) => (i + 1) + '. [' + fmt(c.s) + ' – ' + fmt(c.e) + '] ' + (c.note || '').replace(/\n/g, ' ')).join('\n');
+  const files = [{ name: inFolder ? 'cards.txt' : base + ' - cards.txt', blob: new Blob([text], { type: 'text/plain' }) }];
+  l.forEach((c, i) => takesOf(c).reverse().forEach((r, k) => {
+    const n = 'card ' + String(i + 1).padStart(2, '0') + ' - take ' + (k + 1) + '.' + ext(r);
+    files.push({ name: inFolder ? n : base + ' - ' + n, blob: r.blob });
+  }));
+  return files;
+}
+async function exportAll() {
+  try {
+    if (window.showDirectoryPicker) {
+      const root = await showDirectoryPicker({ mode: 'readwrite' });
+      const dir = await root.getDirectoryHandle(safe(titleText), { create: true });
+      for (const f of exportFiles(true)) { const w = await (await dir.getFileHandle(f.name, { create: true })).createWritable(); await w.write(f.blob); await w.close(); }
+      status.textContent = 'Exported to the folder “' + safe(titleText) + '”'; return;
+    }
+    const files = exportFiles(false).map(f => new File([f.blob], f.name, { type: f.blob.type }));
+    if (navigator.canShare && navigator.canShare({ files })) { await navigator.share({ files, title: titleText }); status.textContent = 'Shared'; return; }
+    for (const f of files) { const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; a.click(); await new Promise(r => setTimeout(r, 400)); URL.revokeObjectURL(a.href); }
+    status.textContent = 'Downloaded ' + files.length + ' files';
+  } catch (e) { if (e.name !== 'AbortError') status.textContent = 'Export failed.'; }
+}
+
+// ---- start
+cur = Math.max(0, mine().length - 1);
+(async () => {
+  if (id) await loadRecs();
+  setTab(location.hash === '#study' ? 'study' : 'cards');
+})();
 </script>
 </body>
 </html>
