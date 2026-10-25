@@ -59,23 +59,16 @@ h1{margin:12px 0 4px;font-size:20px;line-height:28px;font-weight:700}
 .chip.on{background:var(--blue);color:#06121c}
 .card textarea,.face textarea{width:100%;min-height:60px;margin-top:12px;padding:10px 12px;resize:vertical;background:#101010;border:1px solid var(--line);border-radius:12px;font:400 16px/1.45 Roboto,Arial,sans-serif;color:var(--text)}
 .face{background:var(--s1);padding:2px;margin-bottom:12px}
-.swipe{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;text-align:center;padding:30px 8px 16px;border-radius:16px;background:var(--s2);position:relative;transition:box-shadow .15s}
-.swipe .big{font-size:64px;font-weight:700;line-height:1;letter-spacing:-2px}
-.swipe .hint{color:var(--muted);font-size:12px;margin-top:10px}
-.swipe .lab{position:absolute;top:10px;left:0;right:0;font-weight:500;opacity:0}
-.swipe[data-dir] .lab{opacity:1}
-.swipe[data-dir=again]{box-shadow:inset 0 0 0 2px var(--bad)}.swipe[data-dir=again] .lab{color:var(--bad)}
-.swipe[data-dir=hard]{box-shadow:inset 0 0 0 2px var(--warn)}.swipe[data-dir=hard] .lab{color:var(--warn)}
-.swipe[data-dir=good]{box-shadow:inset 0 0 0 2px var(--good)}.swipe[data-dir=good] .lab{color:var(--good)}
-.swipe[data-dir=easy]{box-shadow:inset 0 0 0 2px var(--blue)}.swipe[data-dir=easy] .lab{color:var(--blue)}
+.numbox{text-align:center;padding:24px 8px 18px;border-radius:16px;background:var(--s2)}
+.numbox .big{font-size:64px;font-weight:700;line-height:1;letter-spacing:-2px}
 .prog{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .ptrack{flex:1;height:6px;background:var(--s2);border-radius:3px;overflow:hidden}
 .ptrack i,.atrack i{display:block;height:100%;width:0;background:var(--blue)}
 .arow{display:flex;align-items:center;gap:10px;margin-top:12px}
 .atrack{flex:1;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
 .rate{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-.rate button{border:0;border-radius:12px;padding:10px 2px;font:500 13px Roboto,Arial,sans-serif;cursor:pointer;color:var(--text);background:var(--s2)}
-.rate small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+.rate button{border:0;border-radius:12px;padding:15px 2px;font:500 15px Roboto,Arial,sans-serif;cursor:pointer;color:var(--text);background:var(--s2)}
+.rate small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
 .rate .again{box-shadow:inset 0 0 0 1px rgba(248,113,113,.55)}.rate .hard{box-shadow:inset 0 0 0 1px rgba(251,191,36,.5)}
 .rate .good{box-shadow:inset 0 0 0 1px rgba(74,222,128,.55)}.rate .easy{box-shadow:inset 0 0 0 1px rgba(62,166,255,.55)}
 .end{padding:28px 18px;text-align:center}
@@ -117,15 +110,21 @@ h1{margin:12px 0 4px;font-size:20px;line-height:28px;font-weight:700}
 </div>
 <script>
 // PURE-START
-const NEW_PER_DAY = 10;
+const NEW_PER_DAY = 20;
+// minutes between reviews: 1m, 10m, 30m, 3h, 1d, 3d, 7d, 16d, 35d, 90d
+const STEPS = [1, 10, 30, 180, 1440, 4320, 10080, 23040, 50400, 129600];
+function stepOf(c) {
+  if (!c.seen) return -1;
+  if (c.step !== undefined) return c.step;
+  const m = (c.ivl || 0) * 1440; let s = 0;
+  STEPS.forEach((v, i) => { if (v <= m) s = i; });
+  return s;
+}
 function nextState(c, r) {
-  const n = { ease: c.ease || 2.5, ivl: c.ivl || 0, reps: c.reps || 0, lapses: c.lapses || 0 };
-  const day = 864e5;
-  if (r === 'again') { n.lapses++; n.reps = 0; n.ivl = 0; n.ease = Math.max(1.3, n.ease - 0.2); n.due = Date.now() + 10 * 60e3; return n; }
-  if (r === 'hard') { n.ivl = Math.max(1, Math.round((n.ivl || 1) * 1.2)); n.ease = Math.max(1.3, n.ease - 0.15); }
-  else if (r === 'good') { n.ivl = n.reps === 0 ? 1 : n.reps === 1 ? 3 : Math.max(n.ivl + 1, Math.round(n.ivl * n.ease)); }
-  else { n.ivl = n.reps === 0 ? 4 : Math.round(Math.max(n.ivl, 1) * n.ease * 1.3); n.ease += 0.15; }
-  n.reps++; n.due = Date.now() + n.ivl * day; return n;
+  const s = stepOf(c);
+  let n = r === 'again' ? 0 : r === 'hard' ? Math.max(0, s) : r === 'good' ? s + 1 : s + 2;
+  n = Math.min(STEPS.length - 1, n);
+  return { step: n, ivl: STEPS[n] / 1440, reps: (c.reps || 0) + 1, lapses: (c.lapses || 0) + (r === 'again' && s >= 0 ? 1 : 0), due: Date.now() + STEPS[n] * 60e3 };
 }
 function fmtIvl(ms) {
   const m = ms / 6e4;
@@ -134,13 +133,6 @@ function fmtIvl(ms) {
   const d = hh / 24; if (d < 30) return Math.round(d) + 'd';
   if (d < 365) return Math.round(d / 30) + 'mo';
   return (d / 365).toFixed(1) + 'y';
-}
-function dirOf(dx, dy) {
-  const ax = Math.abs(dx), ay = Math.abs(dy);
-  if (Math.max(ax, ay) < 70) return null;
-  if (ax >= ay * 1.3) return dx > 0 ? 'good' : 'again';
-  if (ay >= ax * 1.3) return dy < 0 ? 'easy' : 'hard';
-  return null;
 }
 function noteLines(text) {
   const out = [];
@@ -340,28 +332,36 @@ function renderList() {
 }
 
 // ---- study
+let waitTimer = null, force = null;
 function renderStudy() {
   const now = Date.now(), l = mine();
-  const due = l.filter(c => c.seen && c.due <= now).sort((a, b) => a.due - b.due);
+  const due = l.filter(c => c.seen && c.due <= now);
   const fresh = l.filter(c => !c.seen).slice(0, Math.max(0, NEW_PER_DAY - introduced()));
-  sq = [...due, ...fresh]; sDone = 0; studyFace();
+  sq = [...due, ...fresh]; sDone = 0; force = null; studyFace();
 }
 function studyFace() {
-  const box = h('div', 'scroll'); studyGrade = null; clearInterval(iv);
+  const box = h('div', 'scroll'); studyGrade = null; clearInterval(iv); clearInterval(waitTimer);
   $('pane-study').replaceChildren(box);
-  const c = sq[0];
+  const now = Date.now();
+  const c = sq.filter(x => x.seen && (x.due <= now || x.id === force)).sort((a, b) => a.due - b.due)[0] || sq.filter(x => !x.seen)[0];
   if (!c) {
+    const wait = sq.filter(x => x.seen).sort((a, b) => a.due - b.due)[0];
+    if (wait) {
+      const cd = h('div', 'big2');
+      const tick = () => { const s = Math.ceil((wait.due - Date.now()) / 1000); if (s <= 0) { studyFace(); return; } cd.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+      box.append(h('div', 'end', h('div', 'muted', 'Next card in'), cd, btn('Study now', 'pbtn primary', () => { force = wait.id; studyFace(); })));
+      waitTimer = setInterval(tick, 1000); tick(); return;
+    }
     const nxt = mine().filter(x => x.seen).sort((a, b) => a.due - b.due)[0];
     box.append(h('div', 'end', h('div', 'muted', sDone ? 'Session complete' : 'Nothing to study'),
-      h('div', 'big2', sDone ? sDone + ' cards reviewed' : (mine().length ? 'You’re all caught up' : 'Mark phrases to create cards')),
+      h('div', 'big2', sDone ? sDone + ' reviews done' : (mine().length ? 'You’re all caught up' : 'Mark phrases to create cards')),
       h('div', 'muted', nxt ? 'Next review in ' + fmtIvl(Math.max(0, nxt.due - Date.now())) + '.' : '')));
     return;
   }
   if (ready()) player.cueVideoById({ videoId: id, startSeconds: c.s });
   const num = mine().indexOf(c) + 1, bar = h('i'), fill = h('i');
   fill.style.width = (sDone / (sDone + sq.length)) * 100 + '%';
-  const lab = h('div', 'lab'), sw = h('div', 'swipe', lab, h('div', 'big', String(num)), h('div', 'hint', '→ Good · ← Again · ↑ Easy · ↓ Hard'));
-  attachSwipe(sw, lab, c);
+  const sw = h('div', 'numbox', h('div', 'big', String(num)));
   const play = btn('▶ Play', 'bigbtn play', () => playRange(c.s, c.e, null, bar));
   const rec = btn('🎙 Record', 'bigbtn', () => toggleRec(c.e - 0.01, rec, showTake));
   const take = h('div');
@@ -383,29 +383,17 @@ function studyFace() {
     h('div', 'face', sw, h('div', 'acts', play, rec), h('div', 'arow', h('div', 'atrack', bar), slow), take, ta), rate);
   showTake();
 }
-function attachSwipe(el, lab, c) {
-  let x0 = 0, y0 = 0, dx = 0, dy = 0, on = false;
-  const reset = () => { on = false; dx = dy = 0; el.style.transform = ''; delete el.dataset.dir; };
-  el.addEventListener('pointerdown', e => { on = true; x0 = e.clientX; y0 = e.clientY; try { el.setPointerCapture(e.pointerId); } catch (x) {} });
-  el.addEventListener('pointermove', e => {
-    if (!on) return; dx = e.clientX - x0; dy = e.clientY - y0;
-    el.style.transform = 'translate(' + dx * 0.4 + 'px,' + dy * 0.4 + 'px)';
-    const r = dirOf(dx, dy);
-    if (r) { el.dataset.dir = r; lab.textContent = r[0].toUpperCase() + r.slice(1) + ' · ' + fmtIvl(nextState(c, r).due - Date.now()); } else delete el.dataset.dir;
-  });
-  el.addEventListener('pointerup', () => { const r = on ? dirOf(dx, dy) : null; reset(); if (r) gradeCard(c, r); });
-  el.addEventListener('pointercancel', reset);
-}
 function gradeCard(c, r) {
   if (mr && mr.state === 'recording') return;
   clearInterval(iv); if (ready()) player.pauseVideo(); if (curAudio) curAudio.pause();
   if (!c.seen) bumpIntro();
-  Object.assign(c, nextState(c, r), { seen: Date.now() }); save();
-  sq.shift(); if (r === 'again') sq.splice(Math.min(3, sq.length), 0, c); else sDone++;
+  Object.assign(c, nextState(c, r), { seen: Date.now() }); save(); force = null;
+  sq = sq.filter(x => x !== c); sDone++;
+  if (c.due - Date.now() <= 2 * 60e3) sq.push(c);
   studyFace();
 }
 function setTab(t) {
-  tab = t; studyGrade = null; clearInterval(iv);
+  tab = t; studyGrade = null; clearInterval(iv); clearInterval(waitTimer);
   document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
   $('pane-cards').hidden = t !== 'cards'; $('pane-study').hidden = t !== 'study';
   if (t === 'cards') renderList(); else renderStudy();

@@ -81,7 +81,7 @@ const h = (t, c, ...k) => { const e = document.createElement(t); if (c) e.classN
 let tt; function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2600); }
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 const today = () => new Date().toISOString().slice(0, 10);
-const NEW_PER_DAY = 10;
+const NEW_PER_DAY = 20;
 let cards = LS('focus-cards', []);
 const mk = (vid, s, e, note) => ({ id: uid(), vid, s, e, note, ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0, seen: 0, created: Date.now() });
 
