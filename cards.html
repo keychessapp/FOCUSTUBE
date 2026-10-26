@@ -80,15 +80,13 @@ const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catc
 const h = (t, c, ...k) => { const e = document.createElement(t); if (c) e.className = c; for (const x of k.flat()) if (x != null && x !== false) e.append(x.nodeType ? x : document.createTextNode(x)); return e; };
 let tt; function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2600); }
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-const today = () => new Date().toISOString().slice(0, 10);
-const NEW_PER_DAY = 20;
 let cards = LS('focus-cards', []);
-const mk = (vid, s, e, note) => ({ id: uid(), vid, s, e, note, ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0, seen: 0, created: Date.now() });
+const mk = (vid, s, e, note) => ({ id: uid(), vid, s, e, note, created: Date.now() });
 
 // bring older data in: text of old cards, and marks from before cards existed
 (function migrate() {
   let ch = false; const L = LS('focus-lib', {});
-  cards.forEach(c => { if (c.note === undefined) { c.note = [c.tgt, c.nat].filter(Boolean).join('\n'); delete c.tgt; delete c.nat; ch = true; } });
+  cards.forEach(c => { if (c.note === undefined && (c.tgt || c.nat)) { c.note = [c.tgt, c.nat].filter(Boolean).join('\n'); delete c.tgt; delete c.nat; ch = true; } });
   for (const [vid, e] of Object.entries(L)) {
     const ms = (e.marks || []).slice().sort((a, b) => a - b); if (!ms.length) continue;
     let notes = ''; try { notes = localStorage.getItem('focus-notes:' + vid) || ''; } catch (x) {}
@@ -143,20 +141,15 @@ $('imp').onclick = () => $('file').click();
 $('file').onchange = () => { const f = $('file').files[0]; if (f) importPack(f); $('file').value = ''; };
 
 function render() {
-  const L = LS('focus-lib', {}), list = $('list'), now = Date.now();
+  const L = LS('focus-lib', {}), list = $('list');
   const vids = [...new Set(cards.map(c => c.vid))].sort((a, b) => ((L[b] || {}).updated || 0) - ((L[a] || {}).updated || 0));
   list.replaceChildren();
-  let dueAll = 0, freshAll = 0;
   const g = h('div', 'grid');
   vids.forEach(vid => {
-    const info = L[vid] || { t: 'Video', c: '' }, mine = cards.filter(c => c.vid === vid);
-    const intro = (() => { const d = LS('focus-newday', {}); return d.d === today() ? ((d.n || {})[vid] || 0) : 0; })();
-    const due = mine.filter(c => c.seen && c.due <= now).length, fresh = Math.min(mine.filter(c => !c.seen).length, Math.max(0, NEW_PER_DAY - intro));
-    dueAll += due; freshAll += fresh;
+    const info = L[vid] || { t: 'Video', c: '' }, n = cards.filter(c => c.vid === vid).length;
     const q = '?v=' + encodeURIComponent(vid) + '&t=' + encodeURIComponent(info.t || 'Video') + '&c=' + encodeURIComponent(info.c || '');
     const img = h('img'); img.src = 'https://i.ytimg.com/vi/' + vid + '/hqdefault.jpg'; img.alt = ''; img.loading = 'lazy';
-    const study = h('a', 'btn primary' + (due + fresh ? '' : ' off'), 'Study'); study.href = 'watch.html' + q + '#study';
-    const open = h('a', 'btn', 'Open'); open.href = 'watch.html' + q;
+    const open = h('a', 'btn primary', 'Open'); open.href = 'watch.html' + q;
     const share = h('button', 'btn ghost', 'Share'); share.type = 'button'; share.onclick = () => exportPack(vid, info);
     const del = h('button', 'btn ghost danger', 'Delete'); del.type = 'button';
     del.onclick = async () => {
@@ -167,10 +160,9 @@ function render() {
       await dropRecs(vid); render();
     };
     g.append(h('div', 'deck', img, h('div', 'in', h('h3', '', info.t || 'Video'), h('div', 'muted', info.c || ''),
-      h('div', 'pills', h('span', 'pill due', due + ' due'), h('span', 'pill new', fresh + ' new'), h('span', 'pill', mine.length + ' cards')),
-      h('div', 'btns', study, open, share, del))));
+      h('div', 'pills', h('span', 'pill', n + (n === 1 ? ' card' : ' cards'))), h('div', 'btns', open, share, del))));
   });
-  $('sub').textContent = vids.length ? dueAll + ' due and ' + freshAll + ' new today' : 'Your decks appear here';
+  $('sub').textContent = vids.length ? vids.length + (vids.length === 1 ? ' video' : ' videos') : 'Your videos with cards appear here';
   if (!vids.length) list.append(h('div', 'empty', h('strong', '', 'No cards yet'), 'Open a video, pause at the end of a phrase and press Mark. Each mark becomes a card.'));
   else list.append(g);
   meter();
