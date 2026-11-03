@@ -31,8 +31,10 @@ nav button[hidden]{display:none}
 .status{min-height:16px;margin-top:2px;color:var(--muted);font-size:12px;text-align:center}
 button:focus-visible,a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .muted{color:var(--muted)}
-.panel{position:sticky;top:52px;align-self:start}
-.card{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:12px;touch-action:pan-y}
+.panel{position:sticky;top:52px;align-self:start;max-height:calc(100vh - 64px);overflow:auto}
+.cards{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:12px;scroll-margin-top:8px;flex:none}
+.card.cur{border-color:var(--blue)}
 .chd{display:flex;align-items:baseline;gap:6px;user-select:none;-webkit-user-select:none}
 .cnum{font-size:34px;font-weight:700;line-height:1;letter-spacing:-1px}
 .of{color:var(--muted);font-size:14px}
@@ -44,19 +46,15 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--blue);outline-offse
 .bigbtn.live{background:#b3001f;color:#fff}
 .chip{border:0;border-radius:14px;padding:5px 11px;font:500 12px Roboto,Arial,sans-serif;background:var(--s3);color:var(--text);cursor:pointer}
 .take{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px}
-.card textarea{display:block;width:100%;min-height:96px;margin-top:10px;padding:10px 12px;resize:none;overflow:hidden;background:#101010;border:1px solid var(--line);border-radius:12px;font:400 16px/1.45 Roboto,Arial,sans-serif;color:var(--text)}
+.card textarea{display:block;width:100%;min-height:72px;margin-top:10px;padding:10px 12px;resize:none;overflow:hidden;background:#101010;border:1px solid var(--line);border-radius:12px;font:400 16px/1.45 Roboto,Arial,sans-serif;color:var(--text)}
 .card textarea:focus-visible{outline:2px solid var(--blue);outline-offset:-1px}
 .empty{color:var(--muted);padding:10px 4px}
-.from-r{animation:inr .18s ease-out}
-.from-l{animation:inl .18s ease-out}
-@keyframes inr{from{transform:translateX(36px);opacity:0}to{transform:none;opacity:1}}
-@keyframes inl{from{transform:translateX(-36px);opacity:0}to{transform:none;opacity:1}}
-@media (min-width:901px){.card textarea{min-height:150px}}
 @media (max-width:900px){
   .layout{grid-template-columns:1fr;gap:8px;padding:0 0 24px}
   .stick{position:sticky;top:44px;z-index:5;background:var(--bg);padding:4px 0 4px}
   .player{width:min(100%,356px);margin:0 auto}
-  .panel{position:static;margin:0 12px}
+  .panel{position:static;margin:0 12px;max-height:none;overflow:visible}
+  .card{scroll-margin-top:var(--stickh,330px)}
   header{padding:0 12px}
 }
 </style>
@@ -197,19 +195,20 @@ function playRange(a, b) {
   }, 60);
 }
 const busyRec = () => { if (mr && mr.state === 'recording') { status.textContent = 'Stop the recording first.'; return true; } return false; };
+function highlight() {
+  const els = document.querySelectorAll('#list .card');
+  els.forEach((e, i) => e.classList.toggle('cur', i === cur));
+  if (els[cur] && els[cur].scrollIntoView) els[cur].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
 function go(i) {
   const l = mine(); if (!l.length || busyRec()) return;
-  const n = Math.max(0, Math.min(l.length - 1, i)), dir = n > cur ? 'r' : n < cur ? 'l' : '';
-  cur = n; playRange(l[cur].s, l[cur].e); if (dir) renderCard(dir);
+  cur = Math.max(0, Math.min(l.length - 1, i));
+  playRange(l[cur].s, l[cur].e); highlight();
 }
 const playCard = i => { fresh = false; go(i); };
 // ◀ replays the phrase you just marked; each press after that goes one phrase further back
 function back() { if (fresh) { fresh = false; go(cur); } else go(cur - 1); }
 function fwd() { fresh = false; go(cur + 1); }
-function step(d) {
-  const n = cur + d; if (busyRec() || n < 0 || n >= mine().length) return;
-  fresh = false; cur = n; renderCard(d > 0 ? 'r' : 'l');
-}
 function addMark() {
   if (!ready() || !id || busyRec()) return;
   const t = Math.round(player.getCurrentTime() * 10) / 10, l = mine();
@@ -220,7 +219,7 @@ function addMark() {
   else { const prev = l.filter(c => c.e <= t).sort((a, b) => b.e - a.e)[0]; s0 = prev ? prev.e : 0; }
   const nc = { id: uid(), vid: id, s: s0, e: t, created: Date.now() };
   all.push(nc); save(); touch(); cur = mine().indexOf(nc); fresh = true;
-  renderCard('r');
+  renderList(); highlight();
   status.textContent = 'Card ' + (cur + 1) + ' added';
 }
 $('bMark').onclick = addMark;
@@ -236,34 +235,27 @@ document.addEventListener('keydown', e => {
   e.preventDefault();
 });
 
-// ---- one card at a time, in the order of the video; swipe left or right to change
-function renderCard(dir) {
+// ---- all cards, in the order of the video; new ones are added as you mark
+const fit = ta => { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; };
+function renderList() {
   const l = mine(), box = $('list'); box.replaceChildren();
   $('exp').hidden = !l.length;
   if (!l.length) { box.append(h('div', 'empty', 'Pause at the end of a phrase and press Mark. Each mark creates a card.')); return; }
   cur = Math.max(0, Math.min(l.length - 1, cur));
-  const c = l[cur];
-  const ta = h('textarea'); ta.placeholder = 'Write or dictate here…'; ta.value = c.note || '';
-  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 2, Math.round(window.innerHeight * 0.45)) + 'px'; };
-  ta.oninput = () => { c.note = ta.value; save(); grow(); };
-  const play = btn('▶ Play', 'bigbtn play', () => playCard(cur));
-  const rec = btn('🎙 Record', 'bigbtn', () => toggleRec(c.e - 0.01, rec, () => renderCard()));
-  const del = btn('×', 'chip', () => { if (confirm('Delete card ' + (cur + 1) + '?')) { all = all.filter(x => x.id !== c.id); save(); renderCard(); } });
-  del.setAttribute('aria-label', 'Delete this card');
-  const t = takesOf(c)[0];
-  const take = t ? h('div', 'take', btn('▶ Your take · ' + t.dur + 's', 'chip', () => playRec(t)),
-    btn('×', 'chip', async () => { try { await tx('readwrite', s => s.delete(t.id)); } catch (e) {} await loadRecs(); renderCard(); })) : null;
-  const card = h('div', 'card' + (dir ? ' from-' + dir : ''), h('div', 'chd', h('span', 'cnum', String(cur + 1)), h('span', 'of', '/ ' + l.length), h('span', 'grow'), del), h('div', 'row', play, rec), take, ta);
-  attachSwipe(card);
-  box.append(card); grow();
-}
-function attachSwipe(el) {
-  let x0 = 0, y0 = 0, dx = 0, dy = 0, on = false;
-  const reset = () => { on = false; dx = dy = 0; el.style.transform = ''; };
-  el.addEventListener('pointerdown', e => { if (e.target.closest('textarea,button')) return; on = true; x0 = e.clientX; y0 = e.clientY; });
-  el.addEventListener('pointermove', e => { if (!on) return; dx = e.clientX - x0; dy = e.clientY - y0; if (Math.abs(dx) > Math.abs(dy)) el.style.transform = 'translateX(' + dx * 0.4 + 'px)'; });
-  el.addEventListener('pointerup', () => { const d = on && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 ? (dx < 0 ? 1 : -1) : 0; reset(); if (d) step(d); });
-  el.addEventListener('pointercancel', reset);
+  const wrap = h('div', 'cards'), areas = [];
+  l.forEach((c, i) => {
+    const ta = h('textarea'); ta.placeholder = 'Write or dictate here…'; ta.value = c.note || '';
+    ta.oninput = () => { c.note = ta.value; save(); fit(ta); }; areas.push(ta);
+    const play = btn('▶ Play', 'bigbtn play', () => playCard(i));
+    const rec = btn('🎙 Record', 'bigbtn', () => { cur = i; toggleRec(c.e - 0.01, rec, () => { renderList(); highlight(); }); });
+    const del = btn('×', 'chip', () => { if (confirm('Delete card ' + (i + 1) + '?')) { all = all.filter(x => x.id !== c.id); save(); renderList(); } });
+    del.setAttribute('aria-label', 'Delete card ' + (i + 1));
+    const t = takesOf(c)[0];
+    const take = t ? h('div', 'take', btn('▶ Your take · ' + t.dur + 's', 'chip', () => playRec(t)),
+      btn('×', 'chip', async () => { try { await tx('readwrite', s => s.delete(t.id)); } catch (e) {} await loadRecs(); renderList(); })) : null;
+    wrap.append(h('div', 'card' + (i === cur ? ' cur' : ''), h('div', 'chd', h('span', 'cnum', String(i + 1)), h('span', 'grow'), del), h('div', 'row', play, rec), take, ta));
+  });
+  box.append(wrap); areas.forEach(fit);
 }
 
 // ---- export: folder on PC, share sheet on phone, separate files otherwise
@@ -295,8 +287,10 @@ $('exp').onclick = async () => {
 };
 
 // ---- start
+function sizeStick() { document.documentElement.style.setProperty('--stickh', ($('stick').offsetHeight + 52) + 'px'); }
+window.addEventListener('resize', sizeStick);
 cur = Math.max(0, mine().length - 1);
-(async () => { if (id) await loadRecs(); renderCard(); })();
+(async () => { if (id) await loadRecs(); renderList(); sizeStick(); })();
 </script>
 </body>
 </html>
